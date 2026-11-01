@@ -1,3 +1,64 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+:root {
+  --bg: #F5F1E8;
+  --surface: #FDFBF6;
+  --surface-raised: #FFFFFF;
+  --text: #2B2822;
+  --text-soft: #6B665C;
+  --accent: #E86A33;
+  --accent-soft: #FBEEE6;
+  --danger: #B3573F;
+  --border: #E4DECF;
+  --shadow-card: 0 1px 2px rgba(43, 40, 34, 0.04), 0 4px 12px rgba(43, 40, 34, 0.05);
+  --shadow-pop: 0 8px 24px rgba(43, 40, 34, 0.10);
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.anim-fade-rise { animation: fade-rise 200ms ease-out both; }
+.anim-shake { animation: shake 320ms ease-in-out; }
+.anim-pulse-soft { animation: pulse-soft 1.6s ease-in-out infinite; }
+.anim-shimmer { background-size: 220% 100%; animation: shimmer 1.4s linear infinite; }
+.anim-wave { animation: wave 1.2s ease-in-out infinite; }
+
+@keyframes fade-rise {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { transform: translateY(0); opacity: 0.7; }
+  50% { transform: translateY(4px); opacity: 1; }
+}
+
+@keyframes shimmer {
+  from { background-position: 120% 0; }
+  to { background-position: -120% 0; }
+}
+
+@keyframes wave {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-fade-rise, .anim-pulse-soft, .anim-shimmer, .anim-wave { animation: none; }
+  .anim-shake { animation: none; }
+}

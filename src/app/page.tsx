@@ -1,8 +1,13 @@
-export default function Home() {
-  return (
-    <main className="mx-auto max-w-md p-6">
-      <h1 className="text-2xl font-bold">Mente</h1>
-      <p className="text-neutral-600">Bandeja de entrada — módulo 1 en construcción.</p>
-    </main>
-  );
+import { redirect } from 'next/navigation';
+import { createClient } from '@/utils/supabase/server';
+import Bandeja from '@/components/Bandeja';
+
+export const dynamic = 'force-dynamic';
+
+export default async function Home() {
+  // regla del modulo: si getUsuario falla o no hay sesion, al login
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) redirect('/login');
+  return <Bandeja />;
 }

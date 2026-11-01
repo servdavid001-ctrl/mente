@@ -26,8 +26,11 @@ export async function middleware(request: NextRequest) {
   // necesario para que el refresco de sesion escriba cookies nuevas
   const { data: { user } } = await supabase.auth.getUser();
 
-  const esLogin = request.nextUrl.pathname.startsWith('/login');
-  if (!user && !esLogin) {
+  // la API maneja su propio 401; el redirect HTML romperia los fetch JSON
+  const esExenta =
+    request.nextUrl.pathname.startsWith('/api') ||
+    request.nextUrl.pathname.startsWith('/login');
+  if (!user && !esExenta) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 

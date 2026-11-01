@@ -3,13 +3,15 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Mente',
-  description: 'Sistema personal de captura y foco'
+  description: 'Sistema personal de captura y foco',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Mente' },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#f7f3ec'
+  themeColor: '#F5F1E8',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
