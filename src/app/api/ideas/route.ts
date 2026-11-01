@@ -52,7 +52,7 @@ export async function POST(request: Request) {
 
 function buildInsertRow(body: unknown): Record<string, unknown> | null {
   if (typeof body !== 'object' || body === null) return null;
-  const { kind, text, sourceUrl } = body as Record<string, unknown>;
+  const { kind, text, sourceUrl } = (body ?? {}) as Record<string, unknown>;
   const urlStr = typeof sourceUrl === 'string' && sourceUrl.length > 0 ? sourceUrl : null;
   const texto = typeof text === 'string' ? text.trim() : '';
 
@@ -73,7 +73,7 @@ function buildInsertRow(body: unknown): Record<string, unknown> | null {
   }
   if (kind === 'texto') {
     if (texto.length === 0) return null;
-    return { tipo: 'texto', contenido: texto, fuente: urlStr, audio_url: null };
+    return { tipo: 'texto', contenido: texto, fuente: urlStr && /^https?:\/\/\S+$/i.test(urlStr) ? urlStr : null, audio_url: null };
   }
   return null;
 }
