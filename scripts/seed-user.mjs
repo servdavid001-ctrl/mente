@@ -15,23 +15,47 @@ if (!url || !serviceRole) {
   process.exit(1);
 }
 
-const email = 'mente@api.mente-app.local';
+const email = 'admin@mente.local';
 const password = randomBytes(12).toString('base64url');
 
 const admin = createClient(url, serviceRole, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 
-const { data, error } = await admin.auth.admin.createUser({
-  email,
-  password,
-  email_confirm: true,
-  user_metadata: { rol: 'owner', dispositivo_principal: 'movil' },
-});
-
-if (error) {
-  console.error('Fallo al crear el usuario:', error.message);
-  process.exit(1);
+let data;
+{
+  const res = await admin.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+    user_metadata: { rol: 'owner', dispositivo_principal: 'movil' },
+  });
+  if (res.error) {
+    // idempotente: si ya existe, actualizamos el password para dejarlo usable
+    if (res.error.message.includes('already been registered')) {
+      const { data: listado, error: errList } = await admin.auth.admin.listUsers({ perPage: 200 });
+      if (errList) {
+        console.error('Fallo al listar usuarios:', errList.message);
+        process.exit(1);
+      }
+      const existente = listado.users.find((u) => u.email === email);
+      if (!existente) {
+        console.error('Usuario registrado pero no encontrado por email');
+        process.exit(1);
+      }
+      const res2 = await admin.auth.admin.updateUserById(existente.id, { password });
+      if (res2.error) {
+        console.error('Fallo al actualizar el password:', res2.error.message);
+        process.exit(1);
+      }
+      data = { user: existente, ...res2 };
+    } else {
+      console.error('Fallo al crear el usuario:', res.error.message);
+      process.exit(1);
+    }
+  } else {
+    data = res.data;
+  }
 }
 
 writeFileSync('/tmp/opencode/mente-admin.txt', `email: ${email}\npassword: ${password}\nuser_id: ${data.user.id}\n`, { mode: 0o600 });
