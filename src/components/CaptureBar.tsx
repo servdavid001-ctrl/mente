@@ -156,6 +156,7 @@ export default function CaptureBar(props: { onSend: (idea: IdeaPayload) => Promi
           onChange={(e) => setTexto(e.target.value)}
           onPaste={alPegar}
           onKeyDown={onKeyDown}
+          maxLength={20000}
           placeholder="Escribe tu idea..."
           aria-label="Escribe tu idea"
           className="h-11 w-full rounded-card border border-border bg-raised px-3 text-[15px] text-text placeholder:text-text-soft"

@@ -1,6 +1,6 @@
 import type { Idea, IdeaKind } from './types';
 
-/** fila cruda -> contrato Idea de la spec */
+/** fila cruda -> contrato Idea (modulo 2: estado + datos de Biblioteca) */
 export function mapIdeaRow(row: AnyRow): Idea {
   return {
     id: String(row.id),
@@ -8,7 +8,12 @@ export function mapIdeaRow(row: AnyRow): Idea {
     kind: row.tipo,
     sourceUrl: row.fuente ?? row.audio_url ?? undefined,
     createdAt: String(row.created_at),
-    categorized: false,
+    categorized: String(row.estado) !== 'bandeja',
+    estado: row.estado,
+    archivada: Boolean(row.archivada),
+    colecciones: row.coleccion_ids ?? [],
+    mediaUrl: row.media_url ?? null,
+    nota: row.nota ?? null
   };
 }
 
@@ -21,24 +26,35 @@ export function optimisticIdea(kind: Idea['kind'], text: string, sourceUrl?: str
     sourceUrl,
     createdAt: new Date().toISOString(),
     categorized: false,
+    estado: 'bandeja'
   };
 }
 
-/** payload POST desde un Idea ya guardado (para undo de eliminacion) */
+/** payload POST desde un Idea ya guardado (para undo de eliminacion).
+ * el undo restaura en Bandeja sin categorizacion: contrato del modulo 1 */
 export function ideaToPayload(idea: Idea) {
   return {
     kind: idea.kind,
     text: idea.kind === 'voz' ? '' : idea.text,
     // en 'voz' sourceUrl es la ruta del audio en el bucket; en 'link', la URL
-    sourceUrl: idea.sourceUrl,
+    sourceUrl: idea.sourceUrl
   };
 }
+
+const SELECT = 'id,tipo,contenido,fuente,audio_url,estado,archivada,coleccion_ids,media_url,nota,created_at';
+
+export const SELECT_IDEA = SELECT;
 
 type AnyRow = {
   id: unknown;
   tipo: Idea['kind'];
   contenido: string | null;
-  fuente: string | null;
+  fuente?: string | null;
   audio_url?: string | null;
+  estado?: Idea['estado'];
+  archivada?: boolean;
+  coleccion_ids?: string[];
+  media_url?: string | null;
+  nota?: string | null;
   created_at: unknown;
 };

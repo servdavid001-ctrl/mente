@@ -17,6 +17,7 @@ const config: Config = {
           soft: 'var(--accent-soft)'
         },
         danger: 'var(--danger)',
+        success: 'var(--success)',
         border: 'var(--border)'
       },
       borderRadius: { card: '16px', blob: '24px' },

@@ -1,22 +1,35 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { mapIdeaRow } from '@/lib/ideas';
+import { mapIdeaRow, SELECT_IDEA } from '@/lib/ideas';
+import { MAX_TEXTO } from '@/lib/biblioteca';
 import type { Idea } from '@/lib/types';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
-    const { data, error } = await supabase
-      .from('ideas')
-      .select('id,tipo,contenido,fuente,audio_url,created_at')
-      .eq('estado', 'bandeja')
-      .eq('archivada', false)
-      .order('created_at', { ascending: false });
+    const url = new URL(request.url);
+    const estado = url.searchParams.get('estado');
+    const pideArchivadas = url.searchParams.get('archivadas') === '1';
+    // todas=1: incluye archivadas (el detalle va dentro de cada fila)
+    const pideTodas = url.searchParams.get('todas') === '1';
 
+    // fundamentacion (FOUNDATION punto 2): la Bandeja muestra categorizado o no,
+    // por eso el default abraza bandeja + biblioteca; proyecto/investigacion
+    // quedan fuera hasta el modulo 4
+    const query = supabase
+      .from('ideas')
+      .select(SELECT_IDEA)
+      .in('estado', estado === 'biblioteca' ? ['biblioteca'] : ['bandeja', 'biblioteca']);
+
+    if (pideArchivadas) query.eq('estado', 'bandeja').eq('archivada', true);
+    else if (!pideTodas) query.eq('archivada', false);
+
+    const { data, error } = await query.order('created_at', { ascending: false });
     if (error) throw error;
+
     const ideas: Idea[] = (data ?? []).map(mapIdeaRow);
     return NextResponse.json({ ideas });
   } catch (error: unknown) {
@@ -37,9 +50,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Datos de la idea invalidos' }, { status: 400 });
     }
 
-    const { data, error } = await supabase.from('ideas')
+    const { data, error } = await supabase
+      .from('ideas')
       .insert(row)
-      .select('id,tipo,contenido,fuente,audio_url,created_at')
+      .select(SELECT_IDEA)
       .single();
 
     if (error) throw error;
@@ -58,12 +72,11 @@ function buildInsertRow(body: unknown): Record<string, unknown> | null {
 
   if (kind === 'link') {
     // acepta la URL de sourceUrl o, como fallback, extraida de text
-    const candidata =
-      urlStr && /^https?:\/\/\S+$/i.test(urlStr)
-        ? urlStr
-        : /^https?:\/\/\S+$/i.test(texto)
-          ? texto
-          : null;
+    const candidata = esHttp(urlStr)
+      ? urlStr
+      : esHttp(texto)
+        ? texto
+        : null;
     if (!candidata) return null;
     return { tipo: 'link', contenido: candidata, fuente: candidata };
   }
@@ -72,8 +85,17 @@ function buildInsertRow(body: unknown): Record<string, unknown> | null {
     return { tipo: 'voz', contenido: null, audio_url: urlStr };
   }
   if (kind === 'texto') {
-    if (texto.length === 0) return null;
-    return { tipo: 'texto', contenido: texto, fuente: urlStr && /^https?:\/\/\S+$/i.test(urlStr) ? urlStr : null, audio_url: null };
+    if (texto.length === 0 || texto.length > MAX_TEXTO) return null; // P2-2 audit
+    return {
+      tipo: 'texto',
+      contenido: texto,
+      fuente: esHttp(urlStr) ? urlStr : null, // P2-3 audit
+      audio_url: null
+    };
   }
   return null;
+}
+
+function esHttp(url: string | null): boolean {
+  return url !== null && /^https?:\/\/\S+$/i.test(url);
 }

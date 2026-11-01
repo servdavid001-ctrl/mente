@@ -9,7 +9,8 @@ import IdeaActionSheet from './IdeaActionSheet';
 const ETIQUETAS: Record<Idea['kind'], string> = {
   texto: 'Texto',
   voz: 'Nota de voz',
-  link: 'Link'
+  link: 'Link',
+  arte: 'Arte'
 };
 
 export default function IdeaCard(props: {

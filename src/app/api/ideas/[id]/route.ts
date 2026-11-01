@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { mapIdeaRow } from '@/lib/ideas';
+import { mapIdeaRow, SELECT_IDEA } from '@/lib/ideas';
+import { aplicarCambio } from '@/lib/ideaAcciones';
 type Params = { params: { id: string } };
 
 export async function GET(_request: Request, { params }: Params) {
@@ -11,7 +12,7 @@ export async function GET(_request: Request, { params }: Params) {
 
     const { data, error } = await supabase
       .from('ideas')
-      .select('id,tipo,contenido,fuente,audio_url,created_at')
+      .select(SELECT_IDEA)
       .eq('id', params.id)
       .single();
 
@@ -23,6 +24,7 @@ export async function GET(_request: Request, { params }: Params) {
   }
 }
 
+/** PUT unificado: acciones del modulo 2 o el contrato { archivada } del modulo 1 */
 export async function PUT(request: Request, { params }: Params) {
   try {
     const supabase = createClient();
@@ -30,19 +32,18 @@ export async function PUT(request: Request, { params }: Params) {
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
     const body = await request.json();
-    if (typeof body !== 'object' || body === null || typeof body.archivada !== 'boolean') {
+    if (typeof body !== 'object' || body === null) {
       return NextResponse.json({ error: 'Datos invalidos' }, { status: 400 });
     }
 
-    const { data, error } = await supabase
-      .from('ideas')
-      .update({ archivada: body.archivada })
-      .eq('id', params.id)
-      .select('id,tipo,contenido,fuente,audio_url,created_at')
-      .single();
-
-    if (error) throw error;
-    return NextResponse.json({ idea: mapIdeaRow(data) });
+    const resultado = await aplicarCambio(supabase, params.id, body);
+    if (resultado === 'invalido') {
+      return NextResponse.json({ error: 'Datos invalidos' }, { status: 400 });
+    }
+    if ('error' in resultado) {
+      return NextResponse.json({ error: resultado.error }, { status: resultado.status });
+    }
+    return NextResponse.json(resultado);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Error';
     return NextResponse.json({ error: message }, { status: 500 });

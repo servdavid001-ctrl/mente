@@ -14,6 +14,17 @@
   --border: #E4DECF;
   --shadow-card: 0 1px 2px rgba(43, 40, 34, 0.04), 0 4px 12px rgba(43, 40, 34, 0.05);
   --shadow-pop: 0 8px 24px rgba(43, 40, 34, 0.10);
+  /* modulo 2: dots de colecciones (paleta cerrada, spec §1) */
+  --dot-terracota: #E86A33;
+  --dot-mostaza: #A87B1F;
+  --dot-oliva: #6B7F45;
+  --dot-petroleo: #2F6F5E;
+  --dot-tinta: #3D5A80;
+  --dot-violeta: #7B5C8E;
+  --dot-rosa: #C25E7E;
+  --dot-marron: #8B5E3C;
+  /* unico color semantico nuevo modulo 2: badge ✓ (blanco encima 5:1 AA) */
+  --success: #3F7A52;
 }
 
 body {
