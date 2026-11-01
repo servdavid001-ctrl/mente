@@ -12,8 +12,8 @@ Módulo en construcción: ninguno — Fase 0 cerrada, esperando aprobación del 
 
 ## Módulos pendientes (orden)
 1. Fundamento: cuenta + Inbox + captura PWA
-2. Biblioteca: notas + conexiones
-3. AI organizadora + expansión semántica
+2. Biblioteca creativa: colecciones (arte, copy, videos) + notas + conexiones
+3. AI organizadora + expansión semántica + explicar item bajo demanda
 4. Proyectos, Objetivos y Panel de Foco
 5. Extensión Chrome
 6. Share-target móvil

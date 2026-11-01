@@ -16,13 +16,14 @@ Mis ideas se dispersan entre WhatsApp, Notion, Todoist y reels guardados: las ca
 4. **AI organizadora:** clasifica y sugiere categoría/proyecto — siempre sugiere, tú apruebas. Nada automático sin confirmación.
 5. **Expansión semántica:** al capturar contenido (reel, video, artículo) lo transcribe, extrae entidades (autores, libros, lugares, personas) y propone conexiones con ideas dentro del sistema y con conocimiento externo (ej: otros libros del mismo autor).
 6. **De contenido a tareas:** cualquier captura/reel/video puede convertirse en lista de acciones/tareas en un clic (ej: reel de rutina → lista de ejercicios).
-7. **Ideas conectadas:** bloques ligeros con enlaces entre notas, sin jerarquías rígidas.
-8. **Proyectos con Panel de Foco:** los proyectos siempre visibles (nunca bloqueados); el sistema muestra dónde estás poniendo tu atención y dónde la estás perdiendo.
-9. **Guardián suave:** avisa "esto choca con tu foco", "tienes demasiado en el aire", "esto está desordenado, ¿lo ordenamos?" — sugiere, nunca impide.
-10. **Higiene asistida:** detecta lo que lleva tiempo sin usarse y pregunta directamente: "nunca lo has usado, ¿lo necesitas realmente?" — archivar/eliminar en un clic, con tu aprobación.
-11. **Copiloto de objetivos:** el sistema pregunta "¿qué quieres lograr?" y contigo lo convierte en plan de tareas; después guía: "entonces, hoy toca esto y esto".
-12. **De capturar a hacer:** ideas se convierten en acciones/tareas ligadas a proyectos — "guardado" se vuelve "hecho".
-13. **Diseño que te guste:** limpio, visual, card-based estilo Albo; verificado en vivo con REA: fondo crema/cálido, tipografía display con carácter + sans humanista, un solo color de acento, emoción en detalles tipo sticker/pill (Notion), y barra de captura estilo WhatsApp siempre visible abajo.
+7. **Biblioteca creativa:** apartado para arrojar todo ideas creativas — arte, copy, videos, referencias visuales, piezas de cualquier tipo — ordenadas en colecciones por tipo y tema, sin carpetas rígidas. En cada item puedes pedirle a la AI que te **explique** sobre él (qué es, por qué funciona, cómo se conecta con lo tuyo).
+8. **Ideas conectadas:** bloques ligeros con enlaces entre notas, sin jerarquías rígidas.
+9. **Proyectos con Panel de Foco:** los proyectos siempre visibles (nunca bloqueados); el sistema muestra dónde estás poniendo tu atención y dónde la estás perdiendo.
+10. **Guardián suave:** avisa "esto choca con tu foco", "tienes demasiado en el aire", "esto está desordenado, ¿lo ordenamos?" — sugiere, nunca impide.
+11. **Higiene asistida:** detecta lo que lleva tiempo sin usarse y pregunta directamente: "nunca lo has usado, ¿lo necesitas realmente?" — archivar/eliminar en un clic, con tu aprobación.
+12. **Copiloto de objetivos:** el sistema pregunta "¿qué quieres lograr?" y contigo lo convierte en plan de tareas; después guía: "entonces, hoy toca esto y esto".
+13. **De capturar a hacer:** ideas se convierten en acciones/tareas ligadas a proyectos — "guardado" se vuelve "hecho".
+14. **Diseño que te guste:** limpio, visual, card-based estilo Albo; verificado en vivo con REA: fondo crema/cálido, tipografía display con carácter + sans humanista, un solo color de acento, emoción en detalles tipo sticker/pill (Notion), y barra de captura estilo WhatsApp siempre visible abajo.
 
 ## Qué NO debe hacer (límites explícitos)
 - No bloquear, restringir ni esconder proyectos — solo avisar.
@@ -60,8 +61,8 @@ Mis ideas se dispersan entre WhatsApp, Notion, Todoist y reels guardados: las ca
 
 ## Módulos identificados (orden de construcción — v1)
 1. **Fundamento:** cuenta + Inbox + captura básica (texto, voz, link) + PWA
-2. **Biblioteca:** notas con bloques ligeros + conexiones entre ideas
-3. **AI organizadora + expansión semántica:** transcripción, entidades, conexiones, sugerencias aprobables, contenido → tareas
+2. **Biblioteca creativa:** colecciones por tipo/tema (arte, copy, videos, referencias) + notas con bloques ligeros + conexiones entre ideas
+3. **AI organizadora + expansión semántica:** transcripción, entidades, conexiones, sugerencias aprobables, contenido → tareas, **explicar item bajo demanda**
 4. **Proyectos, Objetivos y Panel de Foco:** panel + guardián + copiloto de objetivos
 5. **Extensión Chrome:** guardar link, screenshot, subrayar → captura
 6. **Share-target móvil:** compartir desde cualquier app + screenshots a proyecto
