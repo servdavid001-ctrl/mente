@@ -18,7 +18,7 @@ Mis ideas se dispersan entre WhatsApp, Notion, Todoist y reels guardados: las ca
 6. **De contenido a tareas:** cualquier captura/reel/video puede convertirse en lista de acciones/tareas en un clic (ej: reel de rutina → lista de ejercicios).
 7. **Biblioteca creativa:** apartado para arrojar todo ideas creativas — arte, copy, videos, referencias visuales, piezas de cualquier tipo — ordenadas en colecciones por tipo y tema, sin carpetas rígidas. En cada item puedes pedirle a la AI que te **explique** sobre él (qué es, por qué funciona, cómo se conecta con lo tuyo).
 8. **Ideas conectadas:** bloques ligeros con enlaces entre notas, sin jerarquías rígidas.
-9. **Proyectos con Panel de Foco:** los proyectos siempre visibles (nunca bloqueados); el sistema muestra dónde estás poniendo tu atención y dónde la estás perdiendo.
+9. **Proyectos con Panel de Foco:** pocos proyectos desplegados a la vista; los demás quedan plegados (escondidos pero permanentemente accesibles en el apartado de Foco — nunca bloqueados). El sistema muestra dónde estás poniendo tu atención y dónde la estás perdiendo.
 10. **Guardián suave:** avisa "esto choca con tu foco", "tienes demasiado en el aire", "esto está desordenado, ¿lo ordenamos?" — sugiere, nunca impide.
 11. **Higiene asistida:** detecta lo que lleva tiempo sin usarse y pregunta directamente: "nunca lo has usado, ¿lo necesitas realmente?" — archivar/eliminar en un clic, con tu aprobación.
 12. **Copiloto de objetivos:** el sistema pregunta "¿qué quieres lograr?" y contigo lo convierte en plan de tareas; después guía: "entonces, hoy toca esto y esto".
@@ -26,13 +26,19 @@ Mis ideas se dispersan entre WhatsApp, Notion, Todoist y reels guardados: las ca
 14. **Diseño que te guste:** limpio, visual, card-based estilo Albo; verificado en vivo con REA: fondo crema/cálido, tipografía display con carácter + sans humanista, un solo color de acento, emoción en detalles tipo sticker/pill (Notion), y barra de captura estilo WhatsApp siempre visible abajo.
 
 ## Qué NO debe hacer (límites explícitos)
-- No bloquear, restringir ni esconder proyectos — solo avisar.
+- El sistema no bloquea ni esconde proyectos por su cuenta — solo avisar. Ocultar/plegar proyectos es decisión del usuario y se hace dentro de Foco; todo sigue accesible siempre.
 - No bases de datos complejas, no plantillas infinitas estilo Notion-full.
 - Ninguna acción de la AI sin aprobación manual (en v1).
 - No calendario, no correo, no gestión de otras apps (v1).
 - No integración con WhatsApp (v1 — posible en v2).
 - No multiusuario ni colaboración — es solo para ti.
 - No rastrear tu tiempo de uso de teléfono/navegador (es v2).
+
+## Estructura de la app — 3 apartados (definida por David, 2026-11-01)
+
+1. **Foco** — allí viven los proyectos. Cada proyecto puede contener: **investigaciones** (cada una con sus items/notas), **notas** y **tareas**. Por defecto solo pocos proyectos están desplegados; el resto queda guardado dentro del mismo apartado de Foco (accesible en 1 clic).
+2. **Bandeja de entrada** — todo lo que entra vive aquí, categorizado o no; se ve de un vistazo el estado de cada cosa. La AI categoriza si es obvio; si no, lo categorizas tú. Categorizar = enviar a: un proyecto, una investigación dentro de un proyecto, o la Biblioteca creativa.
+3. **Biblioteca creativa** — allí viven las ideas, arte y demás (colecciones, ver punto 7).
 
 ## Flujo lógico principal
 1. Ves algo interesante → 1 clic desde móvil o navegador → Inbox.

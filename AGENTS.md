@@ -5,7 +5,7 @@ Memoria viva: `docs/PROJECT_STATE.md` — se lee al inicio de cada sesión.
 
 ## Stack
 - Next.js 14 App Router + TypeScript + Tailwind
-- Backend: (pendiente de confirmación de David: Convex o Supabase — pregunta UNA vez en el plan del módulo 1)
+- Backend: Supabase (confirmado por David 2026-11-01) — migraciones vía SQL/CLI, no hay MCP de Supabase en este host
 - Deploy: Vercel (MCP activo)
 
 ## Reglas de código (obligatorias)

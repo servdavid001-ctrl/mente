@@ -23,10 +23,13 @@ Módulo en construcción: ninguno — Fase 0 cerrada, esperando aprobación del 
 (ninguno)
 
 ## Últimas decisiones
+- 2026-11-01: Estructura de app definida por David: 3 apartados (Foco / Bandeja / Biblioteca creativa). Proyectos plegables por decisión del usuario, nunca bloqueados.
 - 2026-11-01: MCP conector + programador/activador → movidas a v2 por decisión de David.
 - 2026-11-01: Captura por WhatsApp → v2 (posible), no v1.
 - 2026-11-01: Nombre provisional "mente" hasta que David defina el definitivo.
+- 2026-11-01: Backend confirmado: Supabase (David). Convex MCP deshabilitado.
 
 ## Alertas activas
-- Decisión pendiente: backend (Convex vs Supabase) — se pregunta UNA vez en el PLAN del módulo 1.
+- Backend confirmado: Supabase. Falta: URL + anon key + service_role key de David (se piden UNA vez) para conectar auth y tabla ideas del módulo 1.
+- MCP convex deshabilitado tras decisión de backend.
 - Referencias de diseño analizadas con REA: albo.inc + notion.com (evidencia en sesión 2026-11-01).
