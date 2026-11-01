@@ -1,0 +1,30 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "rea": {
+      "enabled": true
+    },
+    "vercel": {
+      "enabled": true
+    },
+    "stitch": {
+      "enabled": true
+    },
+    "convex": {
+      "enabled": true
+    }
+  },
+  "agent": {
+    "android-builder": { "disable": true },
+    "android-attacker": { "disable": true },
+    "android-defender": { "disable": true },
+    "android-recon": { "disable": true },
+    "android-reporter": { "disable": true },
+    "chromebook-hardener": { "disable": true },
+    "network-discovery": { "disable": true },
+    "opsec-visibility": { "disable": true },
+    "binary-investigator": { "disable": true },
+    "redesign-scout": { "disable": true },
+    "ai-trainer": { "disable": true }
+  }
+}
