@@ -3,6 +3,8 @@
 import { useEffect, useRef } from 'react';
 
 type Props = {
+  /** segunda entrada del flujo Categorizar (spec modulo 2 §3) */
+  onCategorizar?: () => void;
   onArchivar: () => void;
   /** dos pasos: pedidos -> confirmacion inline en la misma sheet */
   paso: 'pedidos' | 'confirmar';
@@ -67,6 +69,15 @@ export default function IdeaActionSheet(props: Props) {
               ¿Que hacemos con esta idea?
             </p>
             <div className="mt-4 space-y-2">
+              {props.onCategorizar ? (
+                <button
+                  type="button"
+                  onClick={props.onCategorizar}
+                  className="h-12 w-full rounded-card border border-border text-[15px] font-semibold text-text"
+                >
+                  Categorizar
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={props.onArchivar}

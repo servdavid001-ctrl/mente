@@ -1,6 +1,6 @@
 'use client';
 
-import type { Idea } from '@/lib/types';
+import type { Coleccion, Idea } from '@/lib/types';
 import IdeaCard from './IdeaCard';
 import EmptyState from './EmptyState';
 
@@ -10,8 +10,12 @@ type Props = {
   error?: string;
   onRetry?: () => void;
   nuevaId?: string;
+  colecciones?: Coleccion[];
+  /** banda del toggle archivadas: pinta el chip por item */
+  conChipArchivada?: boolean;
   onArchive: (id: string) => void;
   onDelete: (id: string) => void;
+  onCategorizar?: (id: string) => void;
 };
 
 export default function InboxList(props: Props) {
@@ -39,7 +43,9 @@ export default function InboxList(props: Props) {
   }
 
   if (props.ideas.length === 0) {
-    return (
+    return props.conChipArchivada ? (
+      <EmptyState icon="sparkle" title="Nada archivado ahora." />
+    ) : (
       <EmptyState
         icon="sparkle"
         title="Tu cerebro descanza tranquilo."
@@ -56,8 +62,11 @@ export default function InboxList(props: Props) {
           <IdeaCard
             idea={idea}
             nueva={idea.id === props.nuevaId}
+            colecciones={props.colecciones}
+            verArchivadaChip={props.conChipArchivada}
             onArchive={props.onArchive}
             onDelete={props.onDelete}
+            onCategorizar={props.onCategorizar}
           />
         </li>
       ))}

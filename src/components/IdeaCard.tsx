@@ -1,9 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import type { Idea } from '@/lib/types';
+import type { Coleccion, Idea } from '@/lib/types';
 import { relativeTime } from '@/lib/time';
 import { createClient } from '@/utils/supabase/browser';
+import { Dot } from './biblioteca/ColeccionChip';
 import IdeaActionSheet from './IdeaActionSheet';
 
 const ETIQUETAS: Record<Idea['kind'], string> = {
@@ -16,19 +17,35 @@ const ETIQUETAS: Record<Idea['kind'], string> = {
 export default function IdeaCard(props: {
   idea: Idea;
   nueva?: boolean;
+  /** mini-chips de colecciones de la spec §3 resultado */
+  colecciones?: Coleccion[];
   onArchive: (id: string) => void;
   onDelete: (id: string) => void;
+  /** el badge ✗/✓ es tappeable y abre el CategorizarSheet (spec §3) */
+  onCategorizar?: (id: string) => void;
+  /** bandera del toggle archivadas en Bandeja (solo visual, vacio de frio) */
+  verArchivadaChip?: boolean;
 }) {
   const [sheet, setSheet] = useState<'cerrada' | 'abierta' | 'confirmar'>('cerrada');
-  const [hint, setHint] = useState(false);
 
   function cerrar() {
     setSheet('cerrada');
   }
 
+  const nombres = new Map((props.colecciones ?? []).map((c) => [c.id, c]));
+  const chips: Coleccion[] = [];
+  for (const id of props.idea.colecciones ?? []) {
+    const c = nombres.get(id);
+    if (c) chips.push(c);
+    if (chips.length >= 2) break;
+  }
+  const sobra = (props.idea.colecciones ?? []).length - chips.length;
+
   return (
     <article
-      className={`rounded-card bg-surface p-4 shadow-card ${props.nueva ? 'anim-fade-rise' : ''}`}
+      className={`rounded-card bg-surface p-4 shadow-card ${props.nueva ? 'anim-fade-rise' : ''} ${
+        props.idea.archivada ? 'opacity-55' : ''
+      }`}
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
@@ -53,20 +70,40 @@ export default function IdeaCard(props: {
         <button
           type="button"
           role="img"
-          aria-label="Sin categorizar"
-          onClick={() => setHint(true)}
-          className="flex h-6 items-center rounded-full bg-[color:var(--text-soft)] px-1.5"
+          aria-label={props.idea.categorized ? 'Categorizada en Biblioteca' : 'Sin categorizar'}
+          onClick={() => props.onCategorizar?.(props.idea.id)}
+          className={`flex h-6 items-center rounded-full px-1.5 ${
+            props.idea.categorized ? 'bg-success' : 'bg-[color:var(--text-soft)]'
+          }`}
         >
-          <span aria-hidden="true" className="text-[10px] text-white">
-            ✗
+          <span aria-hidden="true" className="text-[10px] text-white anim-fade-rise">
+            {props.idea.categorized ? '✓' : '✗'}
           </span>
         </button>
-        {hint ? (
-          <span aria-live="polite" className="truncate text-[12px]">
-            Aun sin categoria — la organizadora llegara pronto
-          </span>
-        ) : null}
       </div>
+
+      {chips.length > 0 ? (
+        <div aria-hidden="true" className="anim-fade-rise mt-2 flex flex-wrap items-center gap-1.5">
+          {chips.map((c) => (
+            <span
+              key={c.id}
+              className="flex h-6 items-center gap-1 rounded-blob border border-border px-2 text-[11px] text-text-soft"
+            >
+              <Dot color={c.color} tamano="h-2.5 w-2.5" />
+              {c.nombre}
+            </span>
+          ))}
+          {sobra > 0 ? <span className="text-[11px] text-text-soft">+{sobra}</span> : null}
+        </div>
+      ) : null}
+
+      {props.verArchivadaChip && props.idea.archivada ? (
+        <span
+          className="mt-2 inline-flex h-6 items-center rounded-blob border border-border px-2 text-[11px] text-text-soft"
+        >
+          Archivada
+        </span>
+      ) : null}
 
       {sheet !== 'cerrada' ? (
         <IdeaActionSheet
@@ -80,6 +117,12 @@ export default function IdeaCard(props: {
             cerrar();
             props.onDelete(props.idea.id);
           }}
+          onCategorizar={props.onCategorizar
+            ? () => {
+                cerrar();
+                props.onCategorizar?.(props.idea.id);
+              }
+            : undefined}
           onCancelar={cerrar}
           onClose={cerrar}
         />
