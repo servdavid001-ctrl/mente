@@ -2,22 +2,28 @@
 Última actualización: 2026-11-01
 
 ## Estado actual
-Módulo en construcción: Fundamento (módulo 1) — scaffold base montado y commit verde (ec07c85).
-Último módulo completado: ninguno.
+Módulo completado: Fundamento (módulo 1) — login + bandeja funcional + capture texto/voz/link + PWA, build verde (62c8de9).
+Siguiente módulo: 2. Biblioteca creativa.
 
 ## Módulos completados
 | Módulo | Rutas | Tablas | Estado |
 |---|---|---|---|
-| (ninguno) | | | |
+| 1. Fundamento | /, /login, /api/ideas[/id] | ideas + storage ideas-audio | ✓ (con deuda menor, abajo) |
+
+## Deuda del modulo 1 (para el siguiente modulo o enmienda)
+- Foco y Biblioteca = placeholders de la spec del modulo 1 (se construyen en modulos 2 y 4).
+- Confirmacion por email: signUp queda sin sesion hasta confirmar (Auth del proyecto); el flujo principal v1 es signIn.
+- Nota de voz: la card guarda ruta en el bucket y reproduce con URL firmada on demand; el archivo de audio no se borra si la idea se elimina (orphan аудio — limpiar en higiene asistida).
+- Archivadas: columna archivada (adicion documentada a 0001, desviacion justificada del enum estado); no hay UI de ver archivadas (higiene asistida la trae).
+- SW offline: manifest listo pero no service worker custom (v1 PWA minima).
 
 ## Módulos pendientes (orden)
-1. Fundamento: cuenta + Inbox + captura PWA
-2. Biblioteca creativa: colecciones (arte, copy, videos) + notas + conexiones
-3. AI organizadora + expansión semántica + explicar item bajo demanda
-4. Proyectos, Objetivos y Panel de Foco
-5. Extensión Chrome
-6. Share-target móvil
-7. Acciones/tareas
+1. Biblioteca creativa: colecciones (arte, copy, videos) + notas + conexiones
+2. AI organizadora + expansión semántica + explicar item bajo demanda
+3. Proyectos, Objetivos y Panel de Foco
+4. Extensión Chrome
+5. Share-target móvil
+6. Acciones/tareas
 
 ## Bugs abiertos AHORA
 (ninguno)
