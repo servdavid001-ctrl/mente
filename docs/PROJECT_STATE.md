@@ -2,7 +2,7 @@
 Última actualización: 2026-11-01
 
 ## Estado actual
-Módulo en construcción: ninguno — Fase 0 cerrada, esperando aprobación del PLAN del módulo 1.
+Módulo en construcción: Fundamento (módulo 1) — scaffold base montado y commit verde (ec07c85).
 Último módulo completado: ninguno.
 
 ## Módulos completados
