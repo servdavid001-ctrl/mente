@@ -2,7 +2,13 @@
 
 import { useEffect } from 'react';
 
-export type Undo = { tipo: 'archivar' | 'eliminar'; texto: string; idea: import('@/lib/types').Idea };
+export type Undo = {
+  tipo: 'archivar' | 'eliminar';
+  texto: string;
+  idea: import('@/lib/types').Idea;
+  /** activo mientras la operacion de fondo (PUT/DELETE) no termina: undo espera a on finish */
+  pendiente?: boolean;
+};
 
 export default function UndoPrompt(props: {
   activo: Undo;

@@ -54,17 +54,24 @@ function buildInsertRow(body: unknown): Record<string, unknown> | null {
   if (typeof body !== 'object' || body === null) return null;
   const { kind, text, sourceUrl } = body as Record<string, unknown>;
   const urlStr = typeof sourceUrl === 'string' && sourceUrl.length > 0 ? sourceUrl : null;
+  const texto = typeof text === 'string' ? text.trim() : '';
 
   if (kind === 'link') {
-    if (!urlStr || !/^https?:\/\/\S+$/i.test(urlStr)) return null;
-    return { tipo: 'link', contenido: urlStr, fuente: urlStr };
+    // acepta la URL de sourceUrl o, como fallback, extraida de text
+    const candidata =
+      urlStr && /^https?:\/\/\S+$/i.test(urlStr)
+        ? urlStr
+        : /^https?:\/\/\S+$/i.test(texto)
+          ? texto
+          : null;
+    if (!candidata) return null;
+    return { tipo: 'link', contenido: candidata, fuente: candidata };
   }
   if (kind === 'voz') {
     if (!urlStr) return null; // ruta del audio en el bucket: <user_id>/<archivo>
     return { tipo: 'voz', contenido: null, audio_url: urlStr };
   }
   if (kind === 'texto') {
-    const texto = typeof text === 'string' ? text.trim() : '';
     if (texto.length === 0) return null;
     return { tipo: 'texto', contenido: texto, fuente: urlStr, audio_url: null };
   }

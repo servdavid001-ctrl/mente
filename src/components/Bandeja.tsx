@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import AppShell from './AppShell';
 import CaptureBar from './CaptureBar';
 import InboxList from './InboxList';
@@ -16,6 +16,8 @@ const ERROR_ENVIO = 'No se pudo guardar. Tu idea sigue aqui, solo reintenta.';
 const ERROR_ACCION = 'No se pudo completar la accion. Reintenta.';
 
 export default function Bandeja() {
+  /** op de fondo (archivar/eliminar) en vuelo por idea: el undo espera a que termine */
+  const ops = useRef<Map<string, Promise<boolean>>>(new Map());
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | undefined>();
@@ -57,48 +59,70 @@ export default function Bandeja() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-      if (!res.ok) throw new Error('fallo guardado');
+      if (!res.ok) {
+        const detalle = await detalleError(res);
+        throw new Error(detalle ?? ERROR_ENVIO);
+      }
       const json = (await res.json()) as RespuestaIdea;
       setIdeas((prev) => prev.map((i) => (i.id === temp.id ? json.idea : i)));
       navigator.vibrate?.(10);
     } catch (e: unknown) {
-      void e;
       setIdeas((prev) => prev.filter((i) => i.id !== temp.id));
-      setToast(ERROR_ENVIO);
+      setToast(e instanceof Error && e.message ? e.message : ERROR_ENVIO);
       throw e; // CaptureBar conserva el texto si onSend rechaza
     }
   }
 
   async function archivar(id: string) {
     const idea = ideas.find((i) => i.id === id);
-    const res = await fetch(`/api/ideas/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ archivada: true })
-    });
-    if (!res.ok) {
-      setToast(ERROR_ACCION);
-      return;
-    }
+    if (!idea || ops.current.has(id)) return;
     setIdeas((prev) => prev.filter((i) => i.id !== id));
-    if (idea) setUndo({ tipo: 'archivar', texto: 'Idea archivada', idea });
+    setUndo({ tipo: 'archivar', texto: 'Idea archivada', idea, pendiente: true });
+    await operar(id, async () => {
+      const res = await fetch(`/api/ideas/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ archivada: true })
+      });
+      return res.ok;
+    }, idea);
   }
 
   async function eliminar(id: string) {
     const idea = ideas.find((i) => i.id === id);
-    const res = await fetch(`/api/ideas/${id}`, { method: 'DELETE' });
-    if (!res.ok) {
-      setToast(ERROR_ACCION);
-      return;
-    }
+    if (!idea || ops.current.has(id)) return;
     setIdeas((prev) => prev.filter((i) => i.id !== id));
-    if (idea) setUndo({ tipo: 'eliminar', texto: 'Idea eliminada', idea });
+    setUndo({ tipo: 'eliminar', texto: 'Idea eliminada', idea, pendiente: true });
+    await operar(id, async () => (await fetch(`/api/ideas/${id}`, { method: 'DELETE' })).ok, idea);
   }
 
-  /** archivar es reversible en la misma fila; eliminar guarda una copia nueva */
+  /** hace la peticion en bg: undo queda pendiente hasta que termina; si falla revierte */
+  async function operar(id: string, peticion: () => Promise<boolean>, idea: Idea) {
+    const op = (async () => {
+      if (await peticion()) {
+        setUndo((actual) => (actual !== null && actual.idea.id === id ? { ...actual, pendiente: false } : actual));
+        return true;
+      }
+      setUndo((actual) => (actual !== null && actual.idea.id === id ? null : actual));
+      setIdeas((prev) => (prev.some((i) => i.id === id) ? prev : insertarOrdenado(prev, idea)));
+      setToast(ERROR_ACCION);
+      return false;
+    })();
+    ops.current.set(id, op);
+    try {
+      await op;
+    } finally {
+      ops.current.delete(id);
+    }
+  }
+
+  /** archivar es reversible en la misma fila; eliminar guarda una copia nueva.
+   * undo SOLO actua cuando la op de fondo de archivar/eliminar ya termino */
   async function deshacer(guardado: Undo) {
     setUndo(null);
     const idea = guardado.idea;
+    const opEnCurso = ops.current.get(idea.id);
+    if (opEnCurso && !(await opEnCurso)) return; // op fallo: item ya restaurado con su toast
     if (guardado.tipo === 'archivar') {
       const res = await fetch(`/api/ideas/${idea.id}`, {
         method: 'PUT',
@@ -165,4 +189,14 @@ function insertarOrdenado(lista: Idea[], idea: Idea): Idea[] {
   return [...lista, idea].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
+}
+
+/** lee el body de error de la API si existe (patron { error: string }) */
+async function detalleError(res: Response): Promise<string | undefined> {
+  try {
+    const json = (await res.json()) as { error?: unknown };
+    return typeof json.error === 'string' && json.error ? json.error : undefined;
+  } catch {
+    return undefined;
+  }
 }

@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: 'Mente',
   description: 'Sistema personal de captura y foco',
   manifest: '/manifest.webmanifest',
+  icons: { icon: [{ url: '/icon.svg', type: 'image/svg+xml' }, { url: '/favicon.ico', sizes: '48x48' }] },
   appleWebApp: { capable: true, statusBarStyle: 'default', title: 'Mente' },
 };
 

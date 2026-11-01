@@ -1,5 +1,7 @@
 # AGENTS.md — Mente (provisional)
 
+REGLA PERMANENTE (David, 2026-11-01): SIEMPRE operar bajo el flujo completo del CTO-agent (FASES 0-5, delegación a subagentes con andamiaje, quality gate determinista, QA en vivo, security-auditor antes de deploy, cierre con "READY" de David). No atajos, no silencio en desviaciones.
+
 Documento de verdad: `docs/FOUNDATION.md` — no escribir código sin haberlo leído (una vez por sesión).
 Memoria viva: `docs/PROJECT_STATE.md` — se lee al inicio de cada sesión.
 

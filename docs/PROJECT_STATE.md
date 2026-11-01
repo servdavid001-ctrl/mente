@@ -39,3 +39,29 @@ Siguiente módulo: 2. Biblioteca creativa.
 - Backend confirmado: Supabase. Falta: URL + anon key + service_role key de David (se piden UNA vez) para conectar auth y tabla ideas del módulo 1.
 - MCP convex deshabilitado tras decisión de backend.
 - Referencias de diseño analizadas con REA: albo.inc + notion.com (evidencia en sesión 2026-11-01).
+
+---
+## QA REPORT — 2026-11-01 (qa-navigator en vivo)
+URL analizada: http://localhost:3000 (produccion local, npm start) | Activado por: usuario (corto) | Scope: modulo 1 Bandeja (escenarios 1-7 + 9)
+Resultado: 7 OK | 0 P0 desplegados ya corregidos | 1 P0 nuevo | 3 P2
+
+### Flujos verificados
+- Esc1 sin sesion → redirect /login: PASS (cookie previa en perfil limpiada para probar redirect real)
+- Esc2 login → shell 3 apartados (Foco/Bandeja/Biblioteca), Bandeja aria-current="page": PASS
+- Esc3 texto "idea de prueba QA" → item ✗ Texto, composer limpio: PASS
+- Esc4 link https://example.com/articulo → FAIL: 3x POST /api/ideas 400 (ver Bug.md #1)
+- Esc5 mic → toast descriptivo "No pudimos usar el microfono..." + composer usable tras error: PASS
+- Esc6 archivar+undo<6s vuelve (undo@~1.2s, item restaura), archivar sin undo se va (3 PUT 200, persisten): PASS
+- Esc7 eliminar 2 pasos + undo<6s (DELETE 204 → POST 201 restaura), eliminar sin undo se va: PASS
+- Esc8 screenshot bandeja → /tmp/opencode/qa-screens/bandeja-qa.png: OK
+
+### Const no bloqueantes
+- Vitals bandeja: TTFB 793ms, FCP/LCP 1076ms, CLS 0, 0 errores JS consola, 0 excepciones.
+- favicon.ico 404 (P2), mensaje de error de envio generico (Bug.md #2).
+
+### Pendientes para troubleshooter
+- [ ] Bug.md #1 P0 captura de link (archivo/linea en Bug.md)
+- [ ] Bug.md #2-#4 P2 (mensajes de error, favicon, delay del undo prompt)
+
+### Nota de entorno
+- El archivo de credenciales /tmp/opencode/mente-admin.txt tiene formato (email/password/user_id), no password plana. Primer intento de login 400 fue error de parsing del QA, no bug de la app (verificado luego 200 y login en navegador OK).

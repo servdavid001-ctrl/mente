@@ -23,9 +23,17 @@ export default function CaptureBar(props: { onSend: (idea: IdeaPayload) => Promi
       return;
     }
     if (!t && !linkUrl) return;
-    const payload: IdeaPayload = t
-      ? { text: t, sourceUrl: linkUrl ?? undefined, kind: URL_RE.test(t) && !linkUrl ? 'link' : 'texto' }
-      : { text: '', sourceUrl: linkUrl ?? undefined, kind: 'link' };
+    if (URL_RE.test(t) && !linkUrl) {
+      // URL tecleada o pegada: va por sourceUrl; text queda solo para notas del usuario
+      const payload: IdeaPayload = { text: '', sourceUrl: t, kind: 'link' };
+      await mandar(payload);
+      return;
+    }
+    const payload: IdeaPayload = { text: t, sourceUrl: linkUrl ?? undefined, kind: 'texto' };
+    await mandar(payload);
+  }
+
+  async function mandar(payload: IdeaPayload) {
     setEnviando(true);
     try {
       await props.onSend(payload);
