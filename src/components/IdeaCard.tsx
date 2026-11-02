@@ -1,11 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import type { Coleccion, Idea } from '@/lib/types';
+import type { ChipSugerenciaUI, Coleccion, Idea } from '@/lib/types';
 import { relativeTime } from '@/lib/time';
 import { createClient } from '@/utils/supabase/browser';
 import { Dot } from './biblioteca/ColeccionChip';
 import IdeaActionSheet from './IdeaActionSheet';
+import ChipSugerencia, { BotonNoMeSirve } from './ai/ChipSugerencia';
+import BotonPedirSugerencia from './ai/BotonPedirSugerencia';
+import type { EstadoPedido } from './ai/cliente';
 
 const ETIQUETAS: Record<Idea['kind'], string> = {
   texto: 'Texto',
@@ -25,6 +28,12 @@ export default function IdeaCard(props: {
   onCategorizar?: (id: string) => void;
   /** bandera del toggle archivadas en Bandeja (solo visual, vacio de frio) */
   verArchivadaChip?: boolean;
+  /** AI modulo 3: chip de sugerencia pendiente + pedir sugerencia manual */
+  chipAI?: ChipSugerenciaUI;
+  pedirEstado?: EstadoPedido;
+  onAbrirChipSugerencia?: (ideaId: string) => void;
+  onDescartarSugerencia?: (sugerenciaId: string) => void;
+  onPedirSugerencia?: (ideaId: string) => void;
 }) {
   const [sheet, setSheet] = useState<'cerrada' | 'abierta' | 'confirmar'>('cerrada');
 
@@ -67,20 +76,43 @@ export default function IdeaCard(props: {
         <span aria-hidden="true">{ETIQUETAS[props.idea.kind]}</span>
         <span aria-hidden="true">·</span>
         <span aria-hidden="true">{relativeTime(props.idea.createdAt)}</span>
-        <button
-          type="button"
-          role="img"
-          aria-label={props.idea.categorized ? 'Categorizada en Biblioteca' : 'Sin categorizar'}
-          onClick={() => props.onCategorizar?.(props.idea.id)}
-          className={`flex h-6 items-center rounded-full px-1.5 ${
-            props.idea.categorized ? 'bg-success' : 'bg-[color:var(--text-soft)]'
-          }`}
-        >
-          <span aria-hidden="true" className="text-[10px] text-white anim-fade-rise">
-            {props.idea.categorized ? '✓' : '✗'}
-          </span>
-        </button>
+        {props.chipAI && !props.idea.categorized ? (
+          <ChipSugerencia
+            sugerencia={{
+              coleccionId: props.chipAI.coleccionId ?? props.chipAI.sugerenciaId,
+              nombreColeccion: props.chipAI.nombreColeccion,
+              esNueva: Boolean(props.chipAI.esNueva),
+              dotColor: props.chipAI.dotColor
+            }}
+            ideaId={props.idea.id}
+            onOpenSheet={(id) => props.onAbrirChipSugerencia?.(id)}
+          />
+        ) : (
+          <button
+            type="button"
+            role="img"
+            aria-label={props.idea.categorized ? 'Categorizada en Biblioteca' : 'Sin categorizar'}
+            onClick={() => props.onCategorizar?.(props.idea.id)}
+            className={`flex h-6 items-center rounded-full px-1.5 ${
+              props.idea.categorized ? 'bg-success' : 'bg-[color:var(--text-soft)]'
+            }`}
+          >
+            <span aria-hidden="true" className="text-[10px] text-white anim-fade-rise">
+              {props.idea.categorized ? '✓' : '✗'}
+            </span>
+          </button>
+        )}
       </div>
+
+      {props.chipAI && !props.idea.categorized ? (
+        <BotonNoMeSirve onDescartar={() => props.onDescartarSugerencia?.(props.chipAI!.sugerenciaId)} />
+      ) : !props.idea.categorized && props.onPedirSugerencia ? (
+        <BotonPedirSugerencia
+          ideaId={props.idea.id}
+          estado={props.pedirEstado ?? 'quieto'}
+          onPedir={props.onPedirSugerencia}
+        />
+      ) : null}
 
       {chips.length > 0 ? (
         <div aria-hidden="true" className="anim-fade-rise mt-2 flex flex-wrap items-center gap-1.5">

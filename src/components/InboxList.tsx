@@ -1,8 +1,9 @@
 'use client';
 
-import type { Coleccion, Idea } from '@/lib/types';
+import type { ChipSugerenciaUI, Coleccion, Idea } from '@/lib/types';
 import IdeaCard from './IdeaCard';
 import EmptyState from './EmptyState';
+import type { EstadoPedido } from './ai/cliente';
 
 type Props = {
   ideas: Idea[];
@@ -16,6 +17,14 @@ type Props = {
   onArchive: (id: string) => void;
   onDelete: (id: string) => void;
   onCategorizar?: (id: string) => void;
+  /** AI modulo 3: chips + pedir sugerencia por item (solo items no categorizados) */
+  ai?: {
+    chips?: ChipSugerenciaUI[];
+    pedirEstado?: Record<string, EstadoPedido>;
+    onAbrirChipSugerencia: (ideaId: string) => void;
+    onDescartarSugerencia: (sugerenciaId: string) => void;
+    onPedirSugerencia: (ideaId: string) => void;
+  };
 };
 
 export default function InboxList(props: Props) {
@@ -57,19 +66,27 @@ export default function InboxList(props: Props) {
 
   return (
     <ul className="space-y-3">
-      {props.ideas.map((idea) => (
-        <li key={idea.id} className="anim-fade-rise">
-          <IdeaCard
-            idea={idea}
-            nueva={idea.id === props.nuevaId}
-            colecciones={props.colecciones}
-            verArchivadaChip={props.conChipArchivada}
-            onArchive={props.onArchive}
-            onDelete={props.onDelete}
-            onCategorizar={props.onCategorizar}
-          />
-        </li>
-      ))}
+      {props.ideas.map((idea) => {
+        const chip = (props.ai?.chips ?? []).find((c) => c.ideaId === idea.id);
+        return (
+          <li key={idea.id} className="anim-fade-rise">
+            <IdeaCard
+              idea={idea}
+              nueva={idea.id === props.nuevaId}
+              colecciones={props.colecciones}
+              verArchivadaChip={props.conChipArchivada}
+              onArchive={props.onArchive}
+              onDelete={props.onDelete}
+              onCategorizar={props.onCategorizar}
+              chipAI={chip}
+              pedirEstado={props.ai?.pedirEstado?.[idea.id]}
+              onAbrirChipSugerencia={props.ai?.onAbrirChipSugerencia}
+              onDescartarSugerencia={props.ai?.onDescartarSugerencia}
+              onPedirSugerencia={props.ai?.onPedirSugerencia}
+            />
+          </li>
+        );
+      })}
     </ul>
   );
 }

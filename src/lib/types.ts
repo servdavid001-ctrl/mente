@@ -91,10 +91,29 @@ export type SugerenciaPayloadConexion = {
 
 export type SugerenciaPayloadMinuta = { pasos: string[] };
 
+export type SugerenciaSheet = {
+  sugerenciaId: string;
+  ideaId: string;
+  coleccionId?: string;
+  nombreColeccion: string;
+  esNueva?: boolean;
+  dotColor?: DotColor;
+};
+
 export type Sugerencia = {
   id: string;
   ideaId: string;
   tipo: SugerenciaTipo;
   payload: Record<string, unknown>;
   estado: SugerenciaEstado;
+};
+
+/** chip de la Bandeja (spec 12): dato + id de la sugerencia viva detras */
+export type ChipSugerenciaUI = {
+  sugerenciaId: string;
+  ideaId: string;
+  nombreColeccion: string;
+  esNueva?: boolean;
+  dotColor?: DotColor;
+  coleccionId?: string;
 };

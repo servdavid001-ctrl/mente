@@ -5,18 +5,24 @@ import type { Coleccion, DotColor } from '@/lib/types';
 import SheetDialog from '@/components/ui/SheetDialog';
 import ColeccionChip, { Dot } from './ColeccionChip';
 import ColeccionPickerInline from './ColeccionPickerInline';
+import SugerenciaSection from '@/components/ai/SugerenciaSection';
 
 export type GuardarCategorionPayload = {
   coleccionesIds: string[];
   nuevas: { nombre: string; color?: DotColor }[];
 };
 
+import type { SugerenciaSheet } from '@/lib/types';
+export type { SugerenciaSheet } from '@/lib/types';
+
 type NuevaPendiente = { nombre: string; color?: DotColor; activa: boolean };
 
 /**
  * sheet "¿Donde vive esta idea?" (spec §3/§5): preview, destino unico
  * Biblioteca, chips multi + inline nueva, Listo; en modo ajustar muestra
- * Quitar de Biblioteca con confirmacion inline.
+ * Quitar de Biblioteca con confirmacion inline. Extension modulo 3: con
+ * sugerencia llega seleccionada (default deseleccionable) + banner con
+ * descarte para siempre (irreversible).
  */
 export default function CategorizarSheet(props: {
   ideaPreview: string;
@@ -25,12 +31,24 @@ export default function CategorizarSheet(props: {
   iniciales?: string[];
   yaCategorizada?: boolean;
   ocupado?: boolean;
+  sugerencia?: SugerenciaSheet;
+  onDescartarParaSiempre?: () => Promise<void>;
   onSave: (payload: GuardarCategorionPayload) => Promise<void>;
   onQuitar?: () => Promise<void>;
   onCerrar: () => void;
 }) {
-  const [activas, setActivas] = useState<string[]>(props.iniciales ?? []);
-  const [nuevas, setNuevas] = useState<NuevaPendiente[]>([]);
+  const [activas, setActivas] = useState<string[]>(
+    props.sugerencia?.coleccionId
+      ? [props.sugerencia.coleccionId, ...(props.iniciales ?? [])]
+      : (props.iniciales ?? [])
+  );
+  const [nuevas, setNuevas] = useState<NuevaPendiente[]>(
+    props.sugerencia?.esNueva && props.sugerencia.nombreColeccion
+      ? [{ nombre: props.sugerencia.nombreColeccion, color: props.sugerencia.dotColor, activa: true }]
+      : []
+  );
+  const [baneada, setBaneada] = useState(false);
+  const [descartando, setDescartando] = useState(false);
   const [paso, setPaso] = useState<'form' | 'confirmaQuitar'>('form');
   const ocupado = props.ocupado === true;
 
@@ -88,6 +106,28 @@ export default function CategorizarSheet(props: {
       <p aria-hidden="true" className="mt-1 truncate px-2 text-center text-[13px] text-text-soft">
         {props.ideaPreview}
       </p>
+
+      {props.sugerencia && !baneada ? (
+        <SugerenciaSection
+          sugerencia={{
+            nombreColeccion: props.sugerencia.nombreColeccion,
+            esNueva: props.sugerencia.esNueva,
+            dotColor: props.sugerencia.dotColor
+          }}
+          onDescartarParaSiempre={async () => {
+            if (descartando || !props.sugerencia) return;
+            setDescartando(true);
+            await props.onDescartarParaSiempre?.();
+            setBaneada(true);
+            /* el prellenado se deselecciona (spec 13: deselecciona la chip) */
+            if (props.sugerencia.coleccionId) {
+              setActivas((prev) => prev.filter((id) => id !== props.sugerencia!.coleccionId));
+            }
+            setNuevas((prev) => prev.filter((n) => n.nombre !== props.sugerencia!.nombreColeccion));
+            setDescartando(false);
+          }}
+        />
+      ) : null}
 
       <div className="mt-4 space-y-2">
         <div className="flex items-center justify-between rounded-card border border-accent bg-accent-soft px-3 py-2.5">

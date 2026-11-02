@@ -10,6 +10,9 @@ import MetadatosItem from './MetadatosItem';
 import AccionesDetalle from './AccionesDetalle';
 import { HeroItem, VisualNota } from './HeroItem';
 import NotaEditor from './NotaEditor';
+import ExpansionItem from './ExpansionItem';
+import ExplicarFAB from '@/components/ai/ExplicarFAB';
+import ExplicarPanel, { type Turno } from '@/components/ai/ExplicarPanel';
 import UndoPrompt, { type Undo } from '@/components/UndoPrompt';
 import { guardarCategorizacion, quitarDeBiblioteca } from '../bandeja/useCategorizar';
 import { cargarDetalle, idsConectados, type Datos } from './detalle/cargarDetalle';
@@ -41,6 +44,10 @@ export default function DetalleItem(props: { ideaId: string }) {
   const [nota, setNota] = useState('');
   const [undo, setUndo] = useState<Undo | null>(null);
   const [eliminada, setEliminada] = useState(false);
+  // AI modulo 3: panel explicar (hilo vivo mientras la pagina vive)
+  const [explicarAbierto, setExplicarAbierto] = useState(false);
+  const [explicarEstado, setExplicarEstado] = useState<'cerrado' | 'pensando' | 'listo' | 'error' | 'rate'>('cerrado');
+  const [hilo, setHilo] = useState<Turno[]>([]);
   const recargando = useRef(false);
 
   const idea = lista[0] ?? null;
@@ -165,6 +172,92 @@ export default function DetalleItem(props: { ideaId: string }) {
     }
     const json = (await res.json()) as { conexion: Conexion };
     setConexiones((prev) => [...prev, json.conexion]);
+  }
+
+  /** inserta el texto de la AI en la nota del usuario (spec 14.1) y la guarda */
+  async function anexarANota(texto: string) {
+    const item = idea;
+    if (!item) return;
+    const nueva = `${(item.nota ?? '') + (item.nota ? '\n\n' : '')}${texto}`;
+    setNota(nueva);
+    setEditandoNota(true);
+    const res = await fetch(`/api/ideas/${item.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nota: nueva })
+    });
+    if (!res.ok) {
+      setToast(ERROR_ACCION);
+      return;
+    }
+    const json = (await res.json()) as { idea: Idea };
+    setLista((prev) => prev.map((w) => (w.id === item.id ? json.idea : w)));
+  }
+
+  /* -- Explicar (spec modulo3 15): streaming con hilo persistente local --
+     El turno AI se agrega al finalizar la descarga; durante la carga el hilo
+     y el input del usuario no se alteran (nada queda "en el aire") */
+  function abrirExplicar() {
+    setExplicarAbierto(true);
+    if (hilo.length === 0) void explicar('');
+  }
+
+  async function explicar(pregunta: string) {
+    const item = idea;
+    if (!item) return;
+    const historial = hilo.slice(-5).filter((t) => t.texto !== '');
+    setExplicarEstado('pensando');
+    try {
+      const res = await fetch('/api/ai/explicar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ideaId: item.id, pregunta, historial })
+      });
+      if (res.status === 429) {
+        setExplicarEstado('rate');
+        return;
+      }
+      if (!res.ok || !res.body) {
+        setExplicarEstado('error');
+        return;
+      }
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let texto = '';
+      for (;;) {
+        const r = await reader.read();
+        if (r.done) break;
+        texto += dec.decode(r.value, { stream: true });
+      }
+      if (texto.trim() === '') {
+        setHilo((prev) => sinTurnosIncompletos(prev));
+        setExplicarEstado('error');
+        return;
+      }
+      setHilo((prev) => [
+        ...sinTurnosIncompletos(prev),
+        ...(pregunta ? [{ de: 'yo' as const, texto: pregunta }] : []),
+        { de: 'ai', texto }
+      ]);
+      setExplicarEstado('listo');
+    } catch {
+      setHilo((prev) => sinTurnosIncompletos(prev));
+      setExplicarEstado('error');
+    }
+  }
+
+  /** reintento retoma la ultima pregunta sin perder el trabajo (spec 17) */
+  async function reintentarExplicar() {
+    setExplicarEstado('pensando');
+    setHilo((prev) => sinTurnosIncompletos(prev));
+    const ultima = [...hilo].reverse().find((t) => t.de === 'yo' && t.texto !== '');
+    const previa = ultima ? hilo.slice(0, hilo.indexOf(ultima)) : [];
+    setHilo(previa);
+    await explicar(ultima?.texto ?? '');
+  }
+
+  function sinTurnosIncompletos(previo: Turno[]): Turno[] {
+    return previo.filter((t) => t.texto !== '');
   }
 
   async function quitarConexion(id: string) {
@@ -403,6 +496,17 @@ export default function DetalleItem(props: { ideaId: string }) {
             onRemove={(id) => void quitarConexion(id)}
           />
 
+          <ExpansionItem
+            idea={idea}
+            conectadasYa={conectadasYa}
+            onNuevaConexion={(conexion) =>
+              setConexiones((prev) =>
+                prev.some((c) => c.id === conexion.id) ? prev : [...prev, conexion]
+              )
+            }
+            onNotaAppend={(texto) => void anexarANota(texto)}
+          />
+
           {!pickerAbierto ? (
             <button
               type="button"
@@ -429,6 +533,27 @@ export default function DetalleItem(props: { ideaId: string }) {
             onEliminar={() => void eliminar()}
           />
         </div>
+      ) : null}
+
+      {/* FAB Explicar + panel chat (esquina inferior derecha, no tapa el hero) */}
+      {!cargando && !error && !eliminada && idea && !explicarAbierto ? (
+        <ExplicarFAB
+          onClick={() => abrirExplicar()}
+          ariaLabel="Explicar este item con la AI"
+        />
+      ) : null}
+      {!cargando && !error && !eliminada && idea && explicarAbierto ? (
+        <ExplicarPanel
+          item={{ titulo: tituloDe(idea) }}
+          hilo={hilo}
+          estado={explicarEstado}
+          onPreguntar={(texto) => void explicar(texto)}
+          onReintentar={() => void reintentarExplicar()}
+          onCerrar={() => {
+            setExplicarAbierto(false); // el hilo NO se pierde al cerrar (spec 15)
+            setExplicarEstado('cerrado');
+          }}
+        />
       ) : null}
 
       {!cargando && !error && !eliminada && idea && sheetAbierto ? (

@@ -5,10 +5,11 @@ import AppShell from './AppShell';
 import CaptureBar from './CaptureBar';
 import InboxList from './InboxList';
 import UndoPrompt, { type Undo } from './UndoPrompt';
-import CategorizarSheet from './biblioteca/CategorizarSheet';
+import CategorizarSheet, { type SugerenciaSheet } from './biblioteca/CategorizarSheet';
 import { guardarCategorizacion, quitarDeBiblioteca } from './bandeja/useCategorizar';
 import { ideaToPayload, optimisticIdea } from '@/lib/ideas';
-import type { Coleccion, Idea, IdeaPayload } from '@/lib/types';
+import type { ChipSugerenciaUI, Coleccion, Idea, IdeaPayload } from '@/lib/types';
+import { cambiarSugerencia, cargarSugerencias, pedirSugerencia, type EstadoPedido } from './ai/cliente';
 
 const ERROR_CARGA = 'No se pudieron cargar tus ideas. Reintenta';
 const ERROR_ENVIO = 'No se pudo guardar. Tu idea sigue aqui, solo reintenta.';
@@ -26,11 +27,27 @@ export default function Bandeja() {
   const [undo, setUndo] = useState<Undo | null>(null);
   const [sheetId, setSheetId] = useState<string | null>(null);
   const [sheetOcupado, setSheetOcupado] = useState(false);
+  // AI modulo 3: chips de sugerencia + pedir sugerencia + banner primer uso
+  const [chips, setChips] = useState<ChipSugerenciaUI[]>([]);
+  const [pedirEstados, setPedirEstados] = useState<Record<string, EstadoPedido>>({});
+  const [sheetSug, setSheetSug] = useState<SugerenciaSheet | null>(null);
+  const [bannerAI, setBannerAI] = useState(
+    () => typeof window === 'undefined' || window.localStorage.getItem('mente-ai-banner') !== 'visto'
+  );
   const h = {
     setIdeas,
     setColecciones,
     toast: (m: string) => setToast(m)
   };
+
+  /** chips tipo categoria pendientes mapeadas contra colecciones conocidas */
+  const refrescarChips = useCallback(
+    async (ideas: Idea[], cols: Coleccion[]) => {
+      const brutos = await cargarSugerencias(ideas.filter((i) => !i.categorized).map((i) => i.id));
+      setChips(aChips(brutos, cols));
+    },
+    []
+  );
 
   const cargar = useCallback(async () => {
     setCargando(true);
@@ -42,10 +59,13 @@ export default function Bandeja() {
         fetch('/api/colecciones')
       ]);
       if (!rLista.ok || !rArchivo.ok) throw new Error('fallo lista');
-      setIdeas(((await rLista.json()) as { ideas: Idea[] }).ideas);
+      const lista: Idea[] = ((await rLista.json()) as { ideas: Idea[] }).ideas;
+      setIdeas(lista);
       setArchivadas(((await rArchivo.json()) as { ideas: Idea[] }).ideas);
       if (rCol.ok) {
-        setColecciones(((await rCol.json()) as { colecciones: Coleccion[] }).colecciones);
+        const cols = ((await rCol.json()) as { colecciones: Coleccion[] }).colecciones;
+        setColecciones(cols);
+        void refrescarChips(lista, cols);
       }
     } catch (e: unknown) {
       void e;
@@ -53,7 +73,8 @@ export default function Bandeja() {
     } finally {
       setCargando(false);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refrescarChips]);
 
   useEffect(() => {
     void cargar();
@@ -78,6 +99,21 @@ export default function Bandeja() {
       const json = (await res.json()) as { idea: Idea };
       setIdeas((prev) => prev.map((i) => (i.id === temp.id ? json.idea : i)));
       navigator.vibrate?.(10);
+      // AI (spec 12): el analisis del link se dispara tras la captura; el chip
+      // llega cuando la sugerencia aparece. Errores silenciosos: nada obligatorio.
+      if (payload.kind === 'link') {
+        setPedirEstados((prev) => ({ ...prev, [json.idea.id]: 'loading' }));
+        const estado = await pedirSugerencia(json.idea.id);
+        setPedirEstados((prev) => ({ ...prev, [json.idea.id]: estado }));
+        await refrescarChips(json.idea ? [json.idea] : [], colecciones);
+        if (estado === 'quieto') {
+          setPedirEstados((prev) => {
+            const sinIt = { ...prev };
+            delete sinIt[json.idea.id];
+            return sinIt;
+          });
+        }
+      }
     } catch (e: unknown) {
       setIdeas((prev) => prev.filter((i) => i.id !== temp.id));
       setToast(ERROR_ENVIO);
@@ -178,6 +214,29 @@ export default function Bandeja() {
   }
 
   const ideaSheet = ideas.find((i) => i.id === sheetId);
+
+  /** descarta la sugerencia del chip (reversible): el item vuelve a ✗ simple */
+  async function descartarSugerencia(sugerenciaId: string) {
+    const ok = await cambiarSugerencia(sugerenciaId, 'descartar');
+    if (!ok) setToast(ERROR_ACCION);
+    setChips((prev) => prev.filter((c) => c.sugerenciaId !== sugerenciaId));
+  }
+
+  /** pedir sugerencia manual (spec 14: solo items sin categorizar) */
+  async function pedirManual(ideaId: string) {
+    if (pedirEstados[ideaId] === 'loading') return;
+    setPedirEstados((prev) => ({ ...prev, [ideaId]: 'loading' }));
+    const estado = await pedirSugerencia(ideaId);
+    setPedirEstados((prev) => ({ ...prev, [ideaId]: estado }));
+    await refrescarChips(ideas, colecciones);
+    if (estado === 'quieto') {
+      setPedirEstados((prev) => {
+        const sinIt = { ...prev };
+        delete sinIt[ideaId];
+        return sinIt;
+      });
+    }
+  }
   const barraCaptura = (
     <div className="space-y-1.5">
       {undo ? (
@@ -199,6 +258,30 @@ export default function Bandeja() {
   return (
     <AppShell activeTab="bandeja" captureBar={barraCaptura}>
       <div className="space-y-2">
+        {bannerAI ? (
+          <div
+            role="status"
+            className="flex items-center gap-2 rounded-card bg-accent-soft px-4 py-2.5 text-[13px] text-text"
+          >
+            <span aria-hidden="true" className="text-accent">✦</span>
+            <span>Antes de asombrarte, tu AI lee tu biblioteca. Nada se aplica sin tu toque.</span>
+            <button
+              type="button"
+              aria-label="Cerrar el aviso de la AI"
+              onClick={() => {
+                setBannerAI(false);
+                try {
+                  window.localStorage.setItem('mente-ai-banner', 'visto');
+                } catch {
+                  /* storage bloqueada: el banner solo se oculta esta vez */
+                }
+              }}
+              className="ml-auto flex h-11 w-11 items-center justify-center text-text-soft"
+            >
+              <span aria-hidden="true">✕</span>
+            </button>
+          </div>
+        ) : null}
         {!error && !cargando ? (
           <div className="flex justify-end">
             <button
@@ -220,7 +303,32 @@ export default function Bandeja() {
           conChipArchivada={verArchivadas}
           onArchive={(id) => void archivar(id)}
           onDelete={(id) => void eliminar(id)}
-          onCategorizar={(id) => setSheetId(id)}
+          onCategorizar={(id) => {
+            setSheetSug(null);
+            setSheetId(id);
+          }}
+          ai={{
+            chips,
+            pedirEstado: pedirEstados,
+            onAbrirChipSugerencia: (ideaId) => {
+              const chip = chips.find((c) => c.ideaId === ideaId);
+              setSheetSug(
+                chip
+                  ? {
+                      sugerenciaId: chip.sugerenciaId,
+                      ideaId,
+                      coleccionId: chip.coleccionId,
+                      nombreColeccion: chip.nombreColeccion,
+                      esNueva: chip.esNueva,
+                      dotColor: chip.dotColor
+                    }
+                  : null
+              );
+              setSheetId(ideaId);
+            },
+            onDescartarSugerencia: (sugerenciaId) => void descartarSugerencia(sugerenciaId),
+            onPedirSugerencia: (ideaId) => void pedirManual(ideaId)
+          }}
         />
       </div>
       {ideaSheet ? (
@@ -229,9 +337,34 @@ export default function Bandeja() {
           colecciones={colecciones}
           yaCategorizada={ideaSheet.categorized}
           ocupado={sheetOcupado}
+          sugerencia={
+            (() => {
+              const chip = chips.find((c) => c.ideaId === ideaSheet.id);
+              return chip
+                ? {
+                    sugerenciaId: chip.sugerenciaId,
+                    ideaId: ideaSheet.id,
+                    coleccionId: chip.coleccionId,
+                    nombreColeccion: chip.nombreColeccion,
+                    esNueva: chip.esNueva,
+                    dotColor: chip.dotColor
+                  }
+                : undefined;
+            })()
+          }
+          onDescartarParaSiempre={async () => {
+            if (!sheetSug) return;
+            await cambiarSugerencia(sheetSug.sugerenciaId, 'descartar_permanente');
+            setChips((prev) => prev.filter((c) => c.sugerenciaId !== sheetSug.sugerenciaId));
+          }}
           onSave={async (payload) => {
             setSheetOcupado(true);
             const ok = await guardarCategorizacion(ideaSheet.id, payload, h);
+            if (ok && sheetSug?.ideaId === ideaSheet.id) {
+              // la categoria se confirma con el guardado del sheet (spec 13)
+              await cambiarSugerencia(sheetSug.sugerenciaId, 'aceptar');
+              setChips((prev) => prev.filter((c) => c.ideaId !== ideaSheet.id));
+            }
             setSheetOcupado(false);
             if (ok) setSheetId(null);
           }}
@@ -259,3 +392,31 @@ function insertarOrdenado(lista: Idea[], idea: Idea): Idea[] {
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 }
+
+/* glue AI (modulo 3) */
+
+/** sugerencias tipo categoria pendientes -> chips (resuelve nombre vs
+ * colecciones conocidas; esNueva cuando no existe la coleccion) */
+function aChips(
+  brutos: Array<{ id: string; ideaId: string; tipo: string; payload: Record<string, unknown>; estado: string }>,
+  cols: Coleccion[]
+): ChipSugerenciaUI[] {
+  const chips: ChipSugerenciaUI[] = [];
+  for (const s of brutos) {
+    if (s.tipo !== 'categoria' || s.estado !== 'pendiente') continue;
+    const nombre = String(s.payload.nombreColeccion ?? '').trim();
+    if (!nombre) continue;
+    const existente = cols.find((c) => c.nombre.toLowerCase() === nombre.toLowerCase());
+    chips.push({
+      sugerenciaId: s.id,
+      ideaId: s.ideaId,
+      nombreColeccion: nombre,
+      esNueva: !existente,
+      dotColor: existente?.color,
+      coleccionId: existente?.id
+    });
+  }
+  return chips;
+}
+
+/** el chip abierto en el sheet: la sugerencia pre-enrutada completa */

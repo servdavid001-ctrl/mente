@@ -43,6 +43,16 @@ body {
 .anim-shimmer { background-size: 220% 100%; animation: shimmer 1.4s linear infinite; }
 .anim-wave { animation: wave 1.2s ease-in-out infinite; }
 
+/* modulo 3: micro-estados AI (no colores nuevos; texto siempre comunica) */
+.anim-dot-seq span { animation: dot-seq 1.2s ease-in-out infinite; }
+.anim-dot-seq span:nth-child(2) { animation-delay: 400ms; }
+.anim-dot-seq span:nth-child(3) { animation-delay: 800ms; }
+
+@keyframes dot-seq {
+  0%, 60%, 100% { opacity: 0.25; }
+  30% { opacity: 1; }
+}
+
 @keyframes fade-rise {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
@@ -72,4 +82,13 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .anim-fade-rise, .anim-pulse-soft, .anim-shimmer, .anim-wave { animation: none; }
   .anim-shake { animation: none; }
+  .anim-dot-seq span { animation: none; opacity: 0.6; }
+}
+
+/* dot fantasma de la sugerencia nueva (anillo punteado, sin color nuevo) */
+.dot-fantasma {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  border: 1.5px dashed var(--accent);
 }

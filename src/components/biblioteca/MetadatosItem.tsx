@@ -28,6 +28,31 @@ export default function MetadatosItem(props: {
           year: 'numeric'
         })}
       </p>
+      {/* estado del semaforo persistente + chips (ajuste modulo 3 del modulo 2) */}
+      <div className="flex flex-wrap items-center gap-2">
+        <span
+          role="img"
+          aria-label={
+            props.idea.archivada
+              ? 'Estado del item: archivada'
+              : 'Estado del item: categorizada en Biblioteca'
+          }
+          className={`inline-flex h-6 items-center gap-1 rounded-full px-2 text-[11px] text-white ${
+            props.idea.archivada ? 'bg-[color:var(--text-soft)]' : 'bg-success'
+          }`}
+        >
+          <span aria-hidden="true">{props.idea.archivada ? '⏸' : '✓'}</span>
+          {props.idea.archivada ? 'Archivada' : 'Categorizada'}
+        </span>
+        {props.idea.entidades?.ai_minuta ? (
+          <span
+            aria-label="Minuta guardada para tareas"
+            className="inline-flex h-6 items-center rounded-blob border border-border px-2 text-[11px] text-text"
+          >
+            Minuta
+          </span>
+        ) : null}
+      </div>
       <p>
         Capturada de la Bandeja · <span aria-hidden="true">{relativeTime(props.idea.createdAt)}</span>
       </p>
