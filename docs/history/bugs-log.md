@@ -50,6 +50,21 @@ Formato: diagnóstico #N numerado, historial, estado `Pendiente` → `Corregido 
 - **Archivo/proceso:** no es codigo fuente; es el proceso `next start` corriendo con build residual. Fix: REINICIAR `npm start` (relaunch con build actual en disco) y re-ejecutar el re-test completo (pasos 2-5 pendientes).
 - **Estado:** Pendiente (qa-navigator no restart servidores por instruccion del CTO)
 
+## Diagnóstico #6 (QA en vivo 2026-11-01 ~21:0x UTC) — P0 — Build desincronizado: chunks app/login inexistentes (400) en next start sin reiniciar
+- **Flujo:** abrir `/login` o `/` → página en blanco / skeleton permanente; app no hidrata.
+- **Error exacto:** `ChunkLoadError: Loading chunk 626 failed. (/_next/static/chunks/app/login/page-f8bddd2fbe1981f9.js)`. También `139-9215d0f78e067402.js` → 400.
+- **Causa raíz:** `next start` (PID 30945, arrancado 20:11) sirvió HTML de un BUILD_ID viejo mientras el build nuevo (20:13) ya había reemplazado los chunks en disco. Mismatch build/servidor, no código.
+- **Estado:** Corregido por reinicio de `next start` (restart 21:11). *Re-verificado en este re-test 20:41 UTC: chunk `139-bc9a84257299dda4.js` sirve 200 y login hidrata sin errores.*
+- **Nota:** este es el mismo bug con nuevo incidente, numeración nueva porque ambos incidentes añadidos en la misma fecha.
+
+## Diagnóstico #7 (QA en vivo 2026-11-01, 20:37 UTC) — P0 — Página /biblioteca SIEMPRE muestra placeholder “Tu Biblioteca llega pronto”
+- **Severidad:** P0 (bloquea los escenarios del módulo 2 Biblioteca).
+- **Flujo:** login OK → categorizar una idea con 🟢 → navegar a `/biblioteca` → heading placeholder, pagina vacía.
+- **Causa raíz verificada en código:**
+  `src/components/AppShell.tsx` debe entrar por la condición `tab === 'bandeja'` para renderizar `props.children` y terminar con `<EmptyState …>` en cualquier otro tab. La orquestadora `src/components/biblioteca/Biblioteca.tsx` monta `<BibliotecaGrid …>` como children de `<AppShell activeTab="biblioteca">`, así que si datos nos cargan, NUNCA son renderizados.
+- **Archivo:** `src/components/AppShell.tsx` (líneas 45-49 aprox) — bypass completo de los children para el tab `biblioteca`.
+- **Estado:** RESUELTO 2026-11-01 (troubleshooter): AppShell ahora renderiza `props.children` para `bandeja`/`biblioteca` y conserva el placeholder solo para `foco`. Build verde + re-test en vivo S3-S6 PASS (ver PROJECT_STATE).
+
 ## Historial
 - 2026-11-01 — QA en vivo por qa-navigator. 4 diagnosticos. URL: http://localhost:3000 (prod local).
 - 2026-11-01 — QA en vivo por qa-navigator. Diagnóstico #5 añadido: re-test fix P0 blockeado por build desincronizado en server (P0). Fix requerido: reiniciar npm start, luego re-test pasos 2-5 del plan.

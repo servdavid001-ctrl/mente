@@ -32,3 +32,57 @@ Resultado: 4 OK | 0 P1 | 1 P0
 ### PENDIENTES PARA TROUBLESHOOTER
 - [ ] Regenerar anon key válida (legacy o sb_publishable_) para vgtbznppcthyitnzgmlt y actualizar Vercel envs + rebuild
 - [ ] Añadir mensaje de error visible en UI cuando signInWithPassword falla (nada en pantalla ahora)
+
+---
+## QA REPORT — 2026-11-01 21:0x UTC
+URL: http://localhost:3000 (prod local, next-start 20:11 20:11 + build sobrescrito 20:13) | Activado por: David (qa-navigator, módulo 2) | Scope: módulo 2 Biblioteca
+Resultado: 0 OK | 1 P0 | 8 escenarios BLOQUEADOS
+
+### P0 — CRÍTICOS
+#### [ ] Build roto: chunk hash no existe — app no hidrata (~7 sketches)
+- Flujo: abrir /login y /home; no hay sesión.
+- Síntoma: página en blanco / skeleton permanente en `/`; NO hay login ni bandeja ni biblioteca.
+- Error exacto: `ChunkLoadError: Loading chunk 626 failed. (http://localhost:3000/_next/static/chunks/app/login/page-f8bddd2fbe1981f9.js)` — también chunk `139-9215d0f78e067402.js` → 400.
+- Capa: agent-browser (consola) + curl: `/login` HTML estable refiere `app/login/page-f8bddd2fbe1981f9.js` y `139-9215d0f78e067402.js`; ambos devuelven 400. En DISCO existe `139-bc9a84257299dda4.js` (toque 20:13) que el server devuelve 404.
+- Causa raíz: `next start` arrancó a 20:11 y el build nuevo se sobrescribió encima a 20:13 → server sirve HTML de un BUILD_ID viejo una vez chunks ya reemplazados en disco. Build en caliente sin reiniciar `next start`.
+- Archivo: `/.next/BUILD_ID` desincronizado vs `/.next/static/chunks/…`. Fix: reiniciar `next start` (no tocamos código ni server por instrucción).
+
+### Evidencia
+- screenshot: /tmp/opencode/qa-screens/biblioteca-evidencia-p0.png
+- otros 8 screenshots previos (01-06 + bandeja) scripts / smoke test en /tmp/opencode/.
+
+### NO VERIFICADOS (bloqueados por P0 build)
+- [2] Categorizar idea → CategorizarSheet → colección "prueba" inline → ✗→✓ Biblioteca
+- [3] Grid Biblioteca por colección "prueba" + búsqueda
+- [4] Detalle conexión con nota "qa" + replicada "Ya estan conectadas" + delete
+- [5] Nota editable persistente
+- [6] Toggle archivadas (contador)
+- [7] 0 errores en consola/red
+- [8] Screenshot Biblioteca grid lleno
+- Veredicto: RECHAZADO (no se puede pasar en estas condiciones).
+
+### FIXES (Troubleshooter)
+- [ ] Servidor: `kill 30945 && next start` (reboot en mismo build ID)
+- [ ] Adicional (bloqueado): server dev 400/endpoint desconocido probablemente vìa forzar hardbrowser cache expirada — reinicio mismo ya aplica.
+
+### Verificadas OK en ejecución
+- (ninguna, bloqueo del build)
+
+---
+## QA REPORT — 2026-11-01 20:41 UTC (RETEST módulo 2 Biblioteca)
+URL analizada: http://localhost:3000 (server REINICIADO por CTO, build limpio) | Activado por: usuario | Scope: módulo 2
+Resultado: 3 OK | 2 P0 nuevos | 1 P0 re-test
+
+- ChunkLoadError: NO aparece. Chunk 139 / app chunks 200. Login OK (admin@mente.local). Consola 0 errores/warnings, 0 4xx-5xx.
+### OK
+- [x] S1 Login — POST /auth/token 200, hidratación 0 errores.
+- [x] S2 Categorizar — ⋯ → CategorizarSheet → colección "prueba2" inline → POST /api/colecciones 201 → PUT /api/ideas/{id} 200 (estado=biblioteca + coleccion_ids ✓ DB confirmada). Nota: al crear la col. nueva llega SELECCIONADA; click en su chip la deselecciona (comportamiento esperado, no bug).
+- [x] S6 Archivadas Bandeja — toggle "Ver archivadas (5)" ↔ "Ocultar archivadas": cuenta cambia, muestra 5 archivadas al activar, oculta al desactivar.
+### P0 NO RESUELTOS (nuevos)
+- [ ] S3/S4/S5 BLOQUEADOS — /biblioteca SIEMPRE muestra "Tu Biblioteca llega pronto" aunque GET /api/ideas?estado=biblioteca devuelve 1 item (DB confirmada: 1 fila estado=biblioteca no-archivada). Causa raíz verificada en código: Biblioteca.tsx pasa el grid como children de AppShell, pero AppShell.tsx:44-48 hace `{tab === 'bandeja' ? children : <EmptyState/>}` → los children del tab 'biblioteca' NUNCA se renderizan.
+### PENDIENTES PARA TROUBLESHOOTER
+- [ ] AppShell.tsx:44-48 — condicional children-only para tab 'bandeja'; renderizar children en 'biblioteca' (y revisar 'foco') antes de aplicar vacio cuando items.length===0.
+### Archivos
+- screenshots: /tmp/opencode/qa-screens/biblioteca.png (evidencia del placeholder), bandeja.png.
+- Bug.md raiz elimine; su contenido + esta nueva P0 movidos a docs/history/bugs-log.md (#6, #7).
+- Veredicto: RECHAZADO

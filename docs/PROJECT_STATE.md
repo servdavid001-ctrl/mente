@@ -27,6 +27,7 @@ Siguiente módulo: 2. Biblioteca creativa.
 
 ## Bugs abiertos AHORA
 (ninguno)
+- 2026-11-01 RESUELTO: P0 modulo 2 (/biblioteca mostraba placeholder de AppShell) — AppShell ahora renderiza children en bandeja+biblioteca, placeholder solo para foco. Bug-log #7 cerrado. Re-test S3-S6 PASS en vivo.
 
 ## Últimas decisiones
 - 2026-11-01: Estructura de app definida por David: 3 apartados (Foco / Bandeja / Biblioteca creativa). Proyectos plegables por decisión del usuario, nunca bloqueados.
