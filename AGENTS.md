@@ -18,6 +18,7 @@ Memoria viva: `docs/PROJECT_STATE.md` — se lee al inicio de cada sesión.
 - Sin tildes en strings JSX · `>` en JSX → `→` · iconos lucide con `aria-label`, no `title`
 - Archivos <100 líneas: cortar en partes y verificar cada una
 - Antes de cualquier commit: `npm run build 2>&1 | tail -20` — nunca commit con build roto
+- REGLA CRÍTICA (lección 2026-11-01): NUNCA `npm run build` con un `next start` vivo — desync de chunks (HTML pide chunks que ya no existen → ChunkLoadError). Secuencia canónica: `pkill -9 -f next-server` → `rm -rf .next` → build → `npm start`. Verificar parse pás deben coindicir con `curl | grep page-` vs `find .next`
 - Commits: `feat: [modlulo]` / `fix: [modlulo]` / `db: [tabla]` / `doc: [que]`
 
 ## Quality gates
