@@ -13,7 +13,9 @@ export function mapIdeaRow(row: AnyRow): Idea {
     archivada: Boolean(row.archivada),
     colecciones: row.coleccion_ids ?? [],
     mediaUrl: row.media_url ?? null,
-    nota: row.nota ?? null
+    nota: row.nota ?? null,
+    transcripcion: row.transcripcion ?? null,
+    entidades: row.entidades ?? null
   };
 }
 
@@ -48,7 +50,8 @@ export function ideaToPayload(idea: Idea) {
   };
 }
 
-const SELECT = 'id,tipo,contenido,fuente,audio_url,estado,archivada,coleccion_ids,media_url,nota,created_at';
+const SELECT =
+  'id,tipo,contenido,fuente,audio_url,estado,archivada,coleccion_ids,media_url,nota,transcripcion,entidades,created_at';
 
 export const SELECT_IDEA = SELECT;
 
@@ -63,5 +66,7 @@ type AnyRow = {
   coleccion_ids?: string[];
   media_url?: string | null;
   nota?: string | null;
+  transcripcion?: string | null;
+  entidades?: Idea['entidades'];
   created_at: unknown;
 };

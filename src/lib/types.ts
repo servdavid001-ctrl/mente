@@ -19,6 +19,9 @@ export type Idea = {
   colecciones?: string[];
   mediaUrl?: string | null;
   nota?: string | null;
+  // datos AI (modulo 3)
+  transcripcion?: string | null;
+  entidades?: EntidadesItem | null;
 };
 
 // extendido con sourceUrl usado para voz: el CaptureBar sube el audio al bucket
@@ -53,4 +56,45 @@ export type Conexion = {
   haciaId: string;
   nota?: string;
   creadoEl: string;
+};
+
+/* extension modulo 3 (AI organizadora): entidades + sugerencias */
+
+export type TipoEntidad = 'autor' | 'libro' | 'persona' | 'lugar' | 'marca' | 'concepto';
+export type Entidad = { nombre: string; tipo: TipoEntidad };
+
+/** shape de entidades jsonb: lista + minuta aceptada (ai_minuta, base mod 7) */
+export type EntidadesItem = {
+  lista: Entidad[];
+  ai_minuta?: { pasos: string[]; guardada: string };
+};
+
+export type SugerenciaEstado =
+  | 'pendiente'
+  | 'aceptada'
+  | 'descartada'
+  | 'descartada_permanente';
+
+export type SugerenciaTipo = 'categoria' | 'conexion' | 'entidades' | 'minuta';
+
+export type SugerenciaPayloadCategoria = {
+  nombreColeccion: string;
+  esNueva?: boolean;
+};
+
+export type SugerenciaPayloadConexion = {
+  haciaId: string;
+  tituloItem: string;
+  tipo: string;
+  motivo: string;
+};
+
+export type SugerenciaPayloadMinuta = { pasos: string[] };
+
+export type Sugerencia = {
+  id: string;
+  ideaId: string;
+  tipo: SugerenciaTipo;
+  payload: Record<string, unknown>;
+  estado: SugerenciaEstado;
 };
