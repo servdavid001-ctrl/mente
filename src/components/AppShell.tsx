@@ -37,17 +37,13 @@ export default function AppShell(props: Props) {
             : 'calc(1.5rem + env(safe-area-inset-bottom))'
         }}
       >
-        {tab === 'bandeja' ? (
-          props.children
-        ) : (
+        {tab === 'foco' ? (
           <EmptyState
-            icon={tab === 'foco' ? 'target' : 'layers'}
-            title={
-              tab === 'foco'
-                ? 'Tu Foco llega pronto. Aqui viviran tus proyectos.'
-                : 'Tu Biblioteca llega pronto. Aqui guardaras arte, ideas y referencias.'
-            }
+            icon="target"
+            title="Tu Foco llega pronto. Aqui viviran tus proyectos."
           />
+        ) : (
+          props.children
         )}
       </main>
 
