@@ -3,12 +3,14 @@
 
 ## Estado actual
 Módulo completado: Fundamento (módulo 1) — login + bandeja funcional + capture texto/voz/link + PWA, build verde (62c8de9).
-Siguiente módulo: 2. Biblioteca creativa.
+Siguiente módulo: 4. Proyectos, Objetivos y Panel de Foco.
 
 ## Módulos completados
 | Módulo | Rutas | Tablas | Estado |
 |---|---|---|---|
-| 1. Fundamento | /, /login, /api/ideas[/id] | ideas + storage ideas-audio | ✓ (con deuda menor, abajo) |
+| 1. Fundamento | /, /login, /api/ideas[/id] | ideas + storage ideas-audio | ✓ |
+| 2. Biblioteca creativa | /biblioteca[/id], /api/colecciones[/id], /api/conexiones, /api/ideas/[id]/media | colecciones + conexiones + ideas biblioteca + bucket biblioteca-media | ✓ |
+| 3. AI organizadora | /api/ai/analizar/[id], /api/ai/sugerencias[/id], /api/ai/explicar | ideas +transcripcion/+entidades, sugerencias | ✓ (ver docs/modules/ai.md) |
 
 ## Deuda del modulo 1 (para el siguiente modulo o enmienda)
 - Foco y Biblioteca = placeholders de la spec del modulo 1 (se construyen en modulos 2 y 4).
@@ -17,13 +19,18 @@ Siguiente módulo: 2. Biblioteca creativa.
 - Archivadas: columna archivada (adicion documentada a 0001, desviacion justificada del enum estado); no hay UI de ver archivadas (higiene asistida la trae).
 - SW offline: manifest listo pero no service worker custom (v1 PWA minima).
 
+## Deuda del modulo 3
+- OPENROUTER_API_KEY no existe aun en el entorno (el provider la soporta como fallback del chat).
+- Rate limit diario 50 analisis por counter (no token-bucket); transcripcion solo con key OpenAI (409 con copy).
+- Conexiones propuestas: max 4 por analisis embedding-lite (keywords), sin embeddings reales (v2 posible).
+- Minuta guardada en ideas.entidades ai_minuta es deuda-productiva del modulo 7 (aqui solo se guarda).
+- Higiene asistida pendiente limpia audio orphan (heredada del modulo 1).
+
 ## Módulos pendientes (orden)
-1. Biblioteca creativa: colecciones (arte, copy, videos) + notas + conexiones
-2. AI organizadora + expansión semántica + explicar item bajo demanda
-3. Proyectos, Objetivos y Panel de Foco
-4. Extensión Chrome
-5. Share-target móvil
-6. Acciones/tareas
+1. Proyectos, Objetivos y Panel de Foco
+2. Extensión Chrome
+3. Share-target móvil
+4. Acciones/tareas
 
 ## Bugs abiertos AHORA
 (ninguno)
