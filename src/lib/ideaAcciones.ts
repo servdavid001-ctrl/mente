@@ -64,6 +64,17 @@ export async function aplicarCambio(
     if (error) throw error;
     return { idea: mapIdeaRow(data) };
   }
+  // quitar la imagen del item (deja el tipo; el hero vuelve al bloque frontal)
+  if (body.media_url === null && Object.keys(body).length === 1) {
+    const { data, error } = await supabase
+      .from('ideas')
+      .update({ media_url: null })
+      .eq('id', id)
+      .select(SELECT_IDEA)
+      .single();
+    if (error) throw error;
+    return { idea: mapIdeaRow(data) };
+  }
   return 'invalido';
 }
 

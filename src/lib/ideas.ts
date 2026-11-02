@@ -31,11 +31,18 @@ export function optimisticIdea(kind: Idea['kind'], text: string, sourceUrl?: str
 }
 
 /** payload POST desde un Idea ya guardado (para undo de eliminacion).
- * el undo restaura en Bandeja sin categorizacion: contrato del modulo 1 */
+ * el undo restaura en Bandeja sin categorizacion: contrato del modulo 1.
+ * Extension (modulo 2, documentada): el tipo 'arte' nace de una imagen subida
+ * (POST media), no de la captura; el undo lo restaura como texto con una
+ * marca para que la idea no se pierda. */
 export function ideaToPayload(idea: Idea) {
+  const esArte = idea.kind === 'arte';
   return {
-    kind: idea.kind,
-    text: idea.kind === 'voz' ? '' : idea.text,
+    kind: (esArte ? 'texto' : idea.kind) as IdeaKind,
+    text:
+      idea.kind === 'voz'
+        ? ''
+        : idea.text || (esArte ? 'Arte sin imagen (restaurado)' : ''),
     // en 'voz' sourceUrl es la ruta del audio en el bucket; en 'link', la URL
     sourceUrl: idea.sourceUrl
   };

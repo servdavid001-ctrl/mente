@@ -21,13 +21,15 @@ type NuevaPendiente = { nombre: string; color?: DotColor; activa: boolean };
 export default function CategorizarSheet(props: {
   ideaPreview: string;
   colecciones: Coleccion[];
+  /** chips ya activas al abrir (modo ajustar en el detalle): refleja el estado */
+  iniciales?: string[];
   yaCategorizada?: boolean;
   ocupado?: boolean;
   onSave: (payload: GuardarCategorionPayload) => Promise<void>;
   onQuitar?: () => Promise<void>;
   onCerrar: () => void;
 }) {
-  const [activas, setActivas] = useState<string[]>([]);
+  const [activas, setActivas] = useState<string[]>(props.iniciales ?? []);
   const [nuevas, setNuevas] = useState<NuevaPendiente[]>([]);
   const [paso, setPaso] = useState<'form' | 'confirmaQuitar'>('form');
   const ocupado = props.ocupado === true;

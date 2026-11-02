@@ -11,6 +11,8 @@ type Props = {
   activeTab: TabId;
   /** titulo del header (sobrescribe el logo "Mente"); misma seccion del modulo 1 */
   titulo?: string;
+  /** slot izquierdo del header (back arrow del detalle); invisible si no viene */
+  headerLeft?: ReactNode;
   /** solo la tab Bandeja renderiza CaptureBar (y avisos) — lo pasa el caller */
   captureBar?: ReactNode;
 };
@@ -20,7 +22,8 @@ export default function AppShell(props: Props) {
 
   return (
     <div className="mx-auto flex h-[100dvh] max-w-md flex-col">
-      <header className="h-12 shrink-0 border-b border-border px-4">
+      <header className="flex h-12 shrink-0 items-center gap-1 border-b border-border px-4">
+        {props.headerLeft ?? null}
         <span className="font-display text-lg font-semibold lowercase tracking-tight">
           {props.titulo ?? 'Mente'}
         </span>
