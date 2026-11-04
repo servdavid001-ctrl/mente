@@ -8,8 +8,6 @@ import {
 } from '@/lib/ai/analizar';
 import {
   SELECT_SUGERENCIA,
-  LIMITE_DIA,
-  analisisDeHoy,
   filtrarNuevas,
   mapSugerenciaRow,
   sugerenciasVivas
@@ -21,33 +19,40 @@ import type { Coleccion, Idea, Sugerencia } from '@/lib/types';
  * POST /api/ai/analizar/[id] (modulo 3): obtiene contenido del item (link con
  * fetch seguro / voz con whisper / texto), guarda transcripcion+entidades en
  * ideas y crea sugerencias pendientes (categoria, conexiones, minuta).
- * Rate diario single-user (audit P3-5). Sin keys ni contenido en logs.
+ * Rate atomico single-user via RPC consumir_analisis. Sin keys ni contenido en logs.
  */
-export async function POST(_request: Request, { params }: { params: { id: string } }) {
+export async function POST(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const supabase = createClient();
+    const { id } = await params;
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
-    const { data: bruta, error: errIdea } = await supabase
-      .from('ideas')
-      .select(SELECT_IDEA)
-      .eq('id', params.id)
-      .single();
-    if (errIdea) throw errIdea;
-    const idea: Idea = mapIdeaRow(bruta);
-
-    const [{ data: cols, error: errCols }, usados] = await Promise.all([
-      supabase.from('colecciones').select('id,nombre,color').order('created_at'),
-      analisisDeHoy(supabase)
-    ]);
-    if (errCols) throw errCols;
-    if (usados >= LIMITE_DIA) {
+    /* rate atomico (security definer): se consume solo con sesion valida */
+    const { data: permitido, error: errRate } = await supabase.rpc('consumir_analisis', {
+      p_max: 50
+    });
+    if (errRate) throw errRate;
+    if (permitido !== true) {
       return NextResponse.json(
         { error: 'Has usado tu analisis de hoy. Vuelve manana — tus ideas siguen intactas.' },
         { status: 429 }
       );
     }
+
+    const { data: bruta, error: errIdea } = await supabase
+      .from('ideas')
+      .select(SELECT_IDEA)
+      .eq('id', id)
+      .single();
+    if (errIdea) throw errIdea;
+    const idea: Idea = mapIdeaRow(bruta);
+
+    const { data: cols, error: errCols } = await supabase
+      .from('colecciones')
+      .select('id,nombre,color')
+      .order('created_at');
+    if (errCols) throw errCols;
     const colecciones: Coleccion[] = (cols ?? []).map(mapColeccionRow);
 
     /* contenido y sugerencias nuevas (evita duplicar las vivas) */

@@ -17,3 +17,13 @@
 - OPENROUTER_API_KEY no existe en el entorno; provider.ts la soporta como fallback del chat. Transcripcion requiere OpenAI (409 con copy claro si falta).
 - ExplicarPanel: el hilo vive en el front (estado local), NO se guarda en DB (simplicidad del micro-contrato).
 - Metadatos del detalle muestra estado del semaforo persistente (ajuste pedido del modulo 2) + pill Minuta.
+
+## 2026-11-04 - Release de producción (seguridad + Next 16)
+- Proyecto Supabase corregido: `vgtbznppcthyitnzgmlt` (el anterior `emquosormmqyfoxtqtea` estaba borrado). Env de Vercel re-apuntadas.
+- Upgrade Next 14.2.35 → 16.4.5 (audit C1: advisories críticos). `middleware.ts` → `proxy.ts`, `cookies()`/`params` async, `createClient()` async. Build verde y `npm audit --omit=dev` = 0.
+- Registro cerrado: `disable_signup=true`, password mínimo 12, botón "Crear cuenta nueva" eliminado (contrato single-user del FOUNDATION).
+- Rate limit AI atómico: tabla `ai_usage` + RPC `consumir_analisis` (50/día, cuenta intentos, límite fijo en la función). Aplicado en analizar y explicar.
+- SSRF: `fetchSeguro` con undici Agent y DNS lookup validado/fijado; rangos IPv4/IPv6 completos; revalidación por redirect.
+- Integridad/entrada: validación UUID en conexiones, trigger `validar_conexion_propia`, cotas de URL/audio en ideas, color hex en colecciones, límites MIME/size de buckets y policy DELETE de audio.
+- Migración `0005_seguridad.sql` creada, aplicada y registrada.
+- Deuda aceptada (no bloqueante): CSP Report-Only con unsafe-eval, cookies no HttpOnly, errores PostgREST crudos, React 18 deprecado, `eslint-config-next` 14.

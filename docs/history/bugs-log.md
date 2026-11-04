@@ -78,3 +78,10 @@ PASS · FIX VERIFICADO:
 - Consola: 0 errores / 0 warnings. Chunks correctos (404 inicial solo pre-fallback).
 - Screenshots: qa-link-item.png, qa-texto-control.png.
 Cierre: P0 "captura de link" resuelto y verificado. Sin regresiones detectadas.
+
+## Diagnóstico #8 (QA en vivo 2026-11-04, preview Vercel) — P0 — BottomNav no navega: apartados cosméticos y Biblioteca inaccesible
+- **Severidad:** P0.
+- **Síntoma:** en Bandeja, tap "Biblioteca" resalta la pestaña pero URL sigue `/`, header "mente" y contenido de Bandeja (sin CaptureBar); no hay buscador/grid. Inverso: en `/biblioteca`, tap "Bandeja" deja URL/header `biblioteca` y el grid; tap "Foco" muestra el placeholder pero conserva `/biblioteca`.
+- **Causa raíz:** `AppShell.tsx:21` guarda el tab en `useState`; `BottomNav.tsx:56` sólo hace `setTab`; no hay `router.push`/`usePathname`. `AppShell.tsx:40-47` renderiza siempre los children de la página actual y `:50` esconde la CaptureBar según el tab local. `/biblioteca` sólo se alcanza escribiendo la URL.
+- **Evidencia:** `03-nav-biblioteca.png`, `16-nav-desde-biblioteca.png`, `17-foco.png` (en `/tmp/opencode/qa-screens/`); `GET /biblioteca` directo 200 con 4 cards.
+- **Estado:** RESUELTO 2026-11-04. Fix: `BottomNav` usa `next/link` con rutas reales (`/`, `/biblioteca`, `/foco`); `AppShell` eliminó el `useState` y deriva el tab de `activeTab`; nueva ruta `src/app/foco/page.tsx` con guard de sesión. Verificado en producción: login → Biblioteca → Bandeja → Foco con URL y `aria-current` correctos, 0 pageerrors.

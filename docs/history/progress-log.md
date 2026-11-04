@@ -123,3 +123,75 @@ Resultado: 3 OK | 1 P1 | 2 P0
 - [ ] User-Agent en descargarSeguro — src/lib/ai/fetchSeguro.ts:~80
 - [ ] Verificar OPENAI_API_KEY/OPENROUTER_API_KEY del entorno local + body real del 502 en /api/ai/explicar
 - [ ] Re-ejecutar Esc 2,3,4,5,6 tras fixes
+
+---
+## QA REPORT — 2026-11-04 19:05 UTC
+URL analizada: https://mente-7ywfj2ksx-servdavid001-2819s-projects.vercel.app (Preview Vercel Ready, deployment protection off, build 18:55 UTC) | Activado por: usuario | Scope: módulos 1, 2 y 3 (Bandeja/Biblioteca/AI)
+Resultado: 18 flujos OK | 0 P1 | 1 P0 | 2 P2 · Veredicto: **NO APTO**
+
+### P0 — CRÍTICOS
+#### [ ] #8 BottomNav no navega: los 3 apartados son cosméticos y Biblioteca es inaccesible desde la UI
+- Flujo: login → Bandeja → tap "Biblioteca" (y viceversa: /biblioteca → tap "Bandeja"/"Foco").
+- Síntoma: la pestaña se resalta (`aria-current="page"`) pero la URL no cambia, el header no cambia y el contenido sigue siendo el de la página actual; al pasar a "Biblioteca" desaparece la CaptureBar y no aparece buscador/grid. Desde `/biblioteca`, "Bandeja" deja el grid y el header "biblioteca".
+- Evidencia: `S3 FAIL` (`url=/`, `searchInput=0`, `captureInput=0`, `aria-current="Ir a la Biblioteca"`); inverso (`url=/biblioteca`, `searchInput=1`, `cardsBiblioteca=4`, `current="Ir a la Bandeja de entrada"`, `header="biblioteca"`). `GET /biblioteca` directo = 200 con 4 cards (el módulo sí funciona; falla la navegación).
+- Capa: navegador real (Playwright headless contra la URL de preview) + código local.
+- Causa raíz: `AppShell` guarda el tab en `useState` local (`AppShell.tsx:21`) y `BottomNav` sólo llama a `setTab` (`BottomNav.tsx:56`); no hay `router.push` ni `usePathname`. `AppShell.tsx:40-47` renderiza siempre los children de la página actual y `:50` esconde la CaptureBar según el tab local. `/biblioteca` sólo se alcanza escribiendo la URL.
+- Archivo: `src/components/AppShell.tsx:21,40-47,50-51` · `src/components/BottomNav.tsx:56`. Falta `src/app/foco/page.tsx`.
+- Fix propuesto: navegación real desde BottomNav (`/`, `/biblioteca`, `/foco`), crear ruta `/foco`, y derivar el tab activo de `usePathname()`/`props.activeTab` (quitar el estado local). Detalle completo en `Bug.md` #8.
+- Estado: Pendiente (CTO/troubleshooter). Bug.md creado en la raíz.
+
+### P1 — IMPORTANTES
+(ninguno)
+
+### P2 — MENORES
+#### [ ] Copy de AI en Bandeja descarta el mensaje claro del servidor
+- Síntoma: "Pedir sugerencia" sin keys → API responde `503 {"error":"La AI no esta disponible todavia: agrega tu OPENROUTER_API_KEY en el panel de config"}`, pero la card muestra "No se pudo procesar. Reintentar".
+- Causa raíz: `pedirSugerencia()` mapea cualquier `!ok` a `'error'` y `BotonPedirSugerencia` pinta copy genérico.
+- Archivo: `src/components/ai/cliente.ts:6-15` · `src/components/ai/BotonPedirSugerencia.tsx:9-16` · `src/components/Bandeja.tsx:226-239`.
+- Fix propuesto: estado `'indisponible'` para 503 y mostrar el `body.error` (o toast con el mensaje del servidor).
+
+#### [ ] Auto-análisis de links se dispara sin keys en cada apertura de detalle
+- Síntoma: al abrir el detalle de un link se hace `POST /api/ai/analizar/<id>` → 503 y queda "Failed to load resource" en consola cada vez.
+- Causa: `ExpansionItem` auto-analiza links sin transcripción en `useEffect` sin comprobar disponibilidad de AI.
+- Archivo: `src/components/biblioteca/ExpansionItem.tsx:29-37`.
+- Fix propuesto (opcional): gate por disponibilidad de AI o recordar el 503 para no repetir la llamada.
+
+### FLUJOS SIN ERRORES
+- [x] S1 Sin sesión → `GET /` 307 → `/login` 200, 1 campo email + 1 password.
+- [x] S2 Login: `POST /auth/v1/token` 200, redirect `/`, shell con 3 tabs y `aria-current` Bandeja, header "mente", composer presente.
+- [x] S4 Bandeja: `GET /api/ideas` 200 (10), `?archivadas=1` 200 (5), `/api/colecciones` 200 (1), toggle "Ver archivadas (5)".
+- [x] S5 Texto: `POST /api/ideas` 201, item visible, composer vacío.
+- [x] S6 Link: `POST /api/ideas` 201, DB `kind=link` y `sourceUrl` exacto, card con href exacto → **fix P0 sourceUrl verificado**.
+- [x] S7 Archivar + Deshacer: PUT 200, item sale, undo vuelve con PUT 200.
+- [x] S8 Archivar sin undo: persiste en `?archivadas=1` (archivada=true).
+- [x] S9 Eliminar 2 pasos + Deshacer: DELETE 204 → POST 201 restaura.
+- [x] S10 Eliminar sin undo: DELETE 204, ya no existe tras 7s.
+- [x] S11 Categorizar + colección existente: PUT 200, `estado=biblioteca`, `coleccion_ids=[prueba2]`, badge ✓.
+- [x] S12 Biblioteca: 5 activos/5 cards; filtros Link 2/2, Texto 3/3, Voz 0/0, Arte 0/0; búsqueda 1/1.
+- [x] S13 Filtro colección "prueba2": 4/4.
+- [x] S14 Detalle + nota: secciones nota/conexiones y botón conectar; PUT 200 y nota persiste tras reload.
+- [x] S15 Conexión idea→idea: POST 201; duplicado bloqueado (hint 1 + botón disabled); DELETE 204.
+- [x] S16 Explicar sin keys: POST 503 → UI "Tu AI no respondio." + Reintentar, sin crash.
+- [x] S17 Sugerencias: `GET /api/ai/sugerencias` 200, 0 pendientes (BD tenía 0 → render de chips N/A).
+- [x] S18 Expansión AI en link Wikipedia: `POST /api/ai/analizar` 503 (no 422) y UI "La AI no esta disponible todavia…" → **fix User-Agent de fetchSeguro verificado**.
+- [x] S19 Consola/red/vitals: 0 excepciones JS (`pageerror=0`); 3 "Failed to load resource" esperados (422 de un link de prueba inexistente en example.com + 2×503 AI). TTFB servidor `/login` 149-190 ms (curl); FCP/LCP 452 ms, CLS 0.
+- [x] Extra: creación inline de colección nueva → aparece seleccionada, PUT 200, filtro devuelve 1; limpieza DELETE 204 (item+colección).
+- [x] Auth APIs sin sesión: `/api/ideas`, `/api/colecciones`, `/api/ai/sugerencias`, `/api/conexiones` → 401; rutas HTML → 307 a /login.
+
+### Evidencia
+- Capturas: `/tmp/opencode/qa-screens/01-login.png` … `19-coleccion-nueva.png` (03/16/17 son las del P0; 14/15 degradación AI; 11/12/13 nota y conexiones).
+- JSON completo: `/tmp/opencode/qa-screens/qa-results-8817999.json`.
+
+### Notas de entorno (no bugs de app)
+- `agent-browser` NO está instalado en este host (`command not found`) pese a la premisa; no se reinstaló. Se usó Playwright 1.64.1 + Chromium headless shell en `/tmp/opencode` (fuera del repo). Sin React DevTools nativo; se cubrió DOM/roles/aria, consola, red y vitals.
+- El MCP de Supabase apunta a otro proyecto (`emquosormmqyfoxtqtea`) y falla; la BD objetivo `vgtbznppcthyitnzgmlt` se verificó vía REST con `SUPABASE_SERVICE_ROLE_KEY` de `.env.local` (sin exponer secretos). Recomendación: corregir el MCP.
+- Vercel Preview: sólo `NEXT_PUBLIC_SUPABASE_URL/ANON_KEY`; sin `OPENROUTER_API_KEY`/`OPENAI_API_KEY` → 503 de AI esperado. Login P0 previo (anon key) queda resuelto: token 200.
+- Datos restaurados tras el QA: 15 ideas, 5 archivadas, 4 biblioteca, 1 colección, 1 conexión, 0 sugerencias, 0 restos `QA-*`.
+
+### PENDIENTES PARA TROUBLESHOOTER
+- [ ] P0 #8 — navegación BottomNav/AppShell + ruta `/foco` (Bug.md #8) — `src/components/AppShell.tsx`, `src/components/BottomNav.tsx`, `src/app/foco/page.tsx`
+- [ ] P2 — propagar mensaje 503 de AI en Bandeja — `src/components/ai/cliente.ts:6-15`
+- [ ] P2 — evitar auto-análisis repetido sin keys — `src/components/biblioteca/ExpansionItem.tsx:29-37`
+
+### Veredicto
+**NO APTO para producción** hasta resolver el P0 #8 (navegación entre los 3 apartados). Los módulos 1 y 2 funcionan correctamente por URL directa; el módulo 3 degrada de forma controlada sin keys.

@@ -3,15 +3,20 @@ import { createClient } from '@/utils/supabase/server';
 import { mapConexionRow } from '@/lib/biblioteca';
 import type { Conexion } from '@/lib/types';
 
+/** UUID completo: evita inyeccion de sintaxis PostgREST en .or()/eq() */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** GET por item: ?id=<uuid idea> devuelve sus conexiones (en cualquier sentido) */
 export async function GET(request: Request) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
     const ideaId = new URL(request.url).searchParams.get('id');
-    if (!ideaId) return NextResponse.json({ error: 'Falta el id del item' }, { status: 400 });
+    if (!ideaId || !UUID_RE.test(ideaId)) {
+      return NextResponse.json({ error: 'Falta el id del item' }, { status: 400 });
+    }
 
     const { data, error } = await supabase
       .from('conexiones')
@@ -31,7 +36,7 @@ export async function GET(request: Request) {
 /** POST conecta: desde el item actual hacia otro; duplicado -> 409 */
 export async function POST(request: Request) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
@@ -40,7 +45,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Datos invalidos' }, { status: 400 });
     }
     const { desdeId, haciaId, nota } = (body ?? {}) as Record<string, unknown>;
-    if (typeof desdeId !== 'string' || typeof haciaId !== 'string' || desdeId === haciaId) {
+    if (
+      typeof desdeId !== 'string' ||
+      typeof haciaId !== 'string' ||
+      desdeId === haciaId ||
+      !UUID_RE.test(desdeId) ||
+      !UUID_RE.test(haciaId)
+    ) {
       return NextResponse.json({ error: 'Datos invalidos' }, { status: 400 });
     }
     const notaOk =
@@ -76,12 +87,14 @@ export async function POST(request: Request) {
 /** DELETE con ?id=<uuid conexion> */
 export async function DELETE(request: Request) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
     const id = new URL(request.url).searchParams.get('id');
-    if (!id) return NextResponse.json({ error: 'Falta el id' }, { status: 400 });
+    if (!id || !UUID_RE.test(id)) {
+      return NextResponse.json({ error: 'Falta el id' }, { status: 400 });
+    }
 
     const { error } = await supabase.from('conexiones').delete().eq('id', id);
     if (error) throw error;

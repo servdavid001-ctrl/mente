@@ -4,9 +4,11 @@ import { mapIdeaRow, SELECT_IDEA } from '@/lib/ideas';
 import { MAX_TEXTO } from '@/lib/biblioteca';
 import type { Idea } from '@/lib/types';
 
+const MAX_URL = 2048;
+
 export async function GET(request: Request) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
@@ -40,12 +42,12 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
     const body = await request.json();
-    const row = buildInsertRow(body);
+    const row = buildInsertRow(body, user.id);
     if (row === null) {
       return NextResponse.json({ error: 'Datos de la idea invalidos' }, { status: 400 });
     }
@@ -64,7 +66,7 @@ export async function POST(request: Request) {
   }
 }
 
-function buildInsertRow(body: unknown): Record<string, unknown> | null {
+function buildInsertRow(body: unknown, userId: string): Record<string, unknown> | null {
   if (typeof body !== 'object' || body === null) return null;
   const { kind, text, sourceUrl } = (body ?? {}) as Record<string, unknown>;
   const urlStr = typeof sourceUrl === 'string' && sourceUrl.length > 0 ? sourceUrl : null;
@@ -81,7 +83,8 @@ function buildInsertRow(body: unknown): Record<string, unknown> | null {
     return { tipo: 'link', contenido: candidata, fuente: candidata };
   }
   if (kind === 'voz') {
-    if (!urlStr) return null; // ruta del audio en el bucket: <user_id>/<archivo>
+    // ruta del audio en el bucket privado: <user_id>/<archivo> (cap 2048)
+    if (!urlStr || urlStr.length > MAX_URL || !urlStr.startsWith(`${userId}/`)) return null;
     return { tipo: 'voz', contenido: null, audio_url: urlStr };
   }
   if (kind === 'texto') {
@@ -97,5 +100,5 @@ function buildInsertRow(body: unknown): Record<string, unknown> | null {
 }
 
 function esHttp(url: string | null): boolean {
-  return url !== null && /^https?:\/\/\S+$/i.test(url);
+  return url !== null && url.length <= MAX_URL && /^https?:\/\/\S+$/i.test(url);
 }

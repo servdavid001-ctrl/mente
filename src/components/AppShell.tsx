@@ -1,9 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import type { ReactNode } from 'react';
 import BottomNav from './BottomNav';
-import EmptyState from './EmptyState';
 import type { TabId } from '@/lib/types';
 
 type Props = {
@@ -18,7 +16,7 @@ type Props = {
 };
 
 export default function AppShell(props: Props) {
-  const [tab, setTab] = useState<TabId>(props.activeTab);
+  const tab = props.activeTab;
 
   return (
     <div className="mx-auto flex h-[100dvh] max-w-md flex-col">
@@ -37,18 +35,11 @@ export default function AppShell(props: Props) {
             : 'calc(1.5rem + env(safe-area-inset-bottom))'
         }}
       >
-        {tab === 'foco' ? (
-          <EmptyState
-            icon="target"
-            title="Tu Foco llega pronto. Aqui viviran tus proyectos."
-          />
-        ) : (
-          props.children
-        )}
+        {props.children}
       </main>
 
       {props.captureBar && tab === 'bandeja' ? props.captureBar : null}
-      <BottomNav active={tab} onChange={setTab} />
+      <BottomNav active={tab} />
     </div>
   );
 }

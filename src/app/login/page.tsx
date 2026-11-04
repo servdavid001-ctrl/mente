@@ -27,22 +27,18 @@ export default function LoginPage() {
     window.setTimeout(() => setShake(false), 400);
   }
 
-  async function submit(accion: 'signInWithPassword' | 'signUp') {
+  async function submit() {
     setLoading(true);
     setError(null);
     try {
       const client = createClient();
-      const { error: err } =
-        accion === 'signUp'
-          ? await client.auth.signUp({ email, password })
-          : await client.auth.signInWithPassword({ email, password });
+      const { error: err } = await client.auth.signInWithPassword({ email, password });
       if (err) throw err;
       router.replace('/'); // LoginPage: exito directa (sesion ya vive en cookies)
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '';
       const esCredenciales = msg.toLowerCase().includes('invalid login credentials');
-      const esRegistrado = msg.toLowerCase().includes('already been registered');
-      fail(esCredenciales || esRegistrado ? (esCredenciales ? ERR_PASSWORD : ERR_GENERIC) : ERR_GENERIC);
+      fail(esCredenciales ? ERR_PASSWORD : ERR_GENERIC);
     } finally {
       setLoading(false);
     }
@@ -55,7 +51,7 @@ export default function LoginPage() {
 
       <form
         className="mt-8 space-y-4"
-        onSubmit={(e) => { e.preventDefault(); void submit('signInWithPassword'); }}
+        onSubmit={(e) => { e.preventDefault(); void submit(); }}
       >
         <SesionCampo
           label="Correo" type="email" value={email} shake={shake}
@@ -77,15 +73,6 @@ export default function LoginPage() {
           {loading ? <SpinGrande /> : 'Entrar'}
         </button>
       </form>
-
-      <button
-        type="button"
-        disabled={loading}
-        onClick={() => void submit('signUp')}
-        className="mt-3 h-11 w-full rounded-card border border-border bg-surface text-sm text-text disabled:opacity-60"
-      >
-        Crear cuenta nueva
-      </button>
     </main>
   );
 }

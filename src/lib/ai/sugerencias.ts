@@ -1,11 +1,10 @@
-/** helpers de sugerencias para las routes AI (modulo 3): mapping, rate-dia,
- * filtro de ya existentes y guardado de la minuta aceptada en ideas. */
+/** helpers de sugerencias para las routes AI (modulo 3): mapping, filtro de
+ * ya existentes y guardado de la minuta aceptada en ideas. */
 
-export type SupabaseCliente = ReturnType<typeof import('@/utils/supabase/server').createClient>;
+export type SupabaseCliente = Awaited<
+  ReturnType<typeof import('@/utils/supabase/server').createClient>
+>;
 import type { Sugerencia, SugerenciaTipo } from '@/lib/types';
-
-/** limite de analisis por dia single-user (audit P3-5: entra cuando hay coste) */
-export const LIMITE_DIA = 50;
 
 export type SugerenciaRow = {
   id: string;
@@ -26,18 +25,6 @@ export function mapSugerenciaRow(r: SugerenciaRow): Sugerencia {
 }
 
 export const SELECT_SUGERENCIA = 'id,idea_id,tipo,payload,estado';
-
-/** cuenta analisis de hoy (sugerencias creadas desde la medianoche UTC) */
-export async function analisisDeHoy(supabase: SupabaseCliente): Promise<number> {
-  const desde = new Date();
-  desde.setUTCHours(0, 0, 0, 0);
-  const { count, error } = await supabase
-    .from('sugerencias')
-    .select('id', { count: 'exact', head: true })
-    .gte('created_at', desde.toISOString());
-  if (error) throw error;
-  return count ?? 0;
-}
 
 /** ids ya no-sugeribles: pendiente/aceptada/descartada_permanente bloquean;
  * 'descartada' puede reaparecer cuando la biblioteca crece (spec 14.3) */

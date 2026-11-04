@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { mapColeccionRow } from '@/lib/biblioteca';
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
 export async function PUT(request: Request, { params }: Params) {
   try {
-    const supabase = createClient();
+    const { id } = await params;
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
@@ -18,7 +19,7 @@ export async function PUT(request: Request, { params }: Params) {
     const { data, error } = await supabase
       .from('colecciones')
       .update(cambios)
-      .eq('id', params.id)
+      .eq('id', id)
       .select('id,nombre,color')
       .single();
     if (error) {
@@ -38,7 +39,8 @@ export async function PUT(request: Request, { params }: Params) {
 /** DELETE borra la coleccion y la extrae de coleccion_ids de todas las ideas */
 export async function DELETE(_request: Request, { params }: Params) {
   try {
-    const supabase = createClient();
+    const { id } = await params;
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
@@ -48,12 +50,12 @@ export async function DELETE(_request: Request, { params }: Params) {
       const { data: filas, error } = await supabase
         .from('ideas')
         .select('id,coleccion_ids')
-        .contains('coleccion_ids', [params.id])
+        .contains('coleccion_ids', [id])
         .range(desde, desde + 99);
       if (error) throw error;
       if (!filas || filas.length === 0) break;
       for (const fila of filas as { id: string; coleccion_ids: string[] }[]) {
-        const restantes = (fila.coleccion_ids ?? []).filter((cid) => cid !== params.id);
+        const restantes = (fila.coleccion_ids ?? []).filter((cid) => cid !== id);
         const { error: errUp } = await supabase
           .from('ideas')
           .update({ coleccion_ids: restantes })
@@ -67,7 +69,7 @@ export async function DELETE(_request: Request, { params }: Params) {
     const { error: errDel } = await supabase
       .from('colecciones')
       .delete()
-      .eq('id', params.id);
+      .eq('id', id);
     if (errDel) throw errDel;
 
     return new NextResponse(null, { status: 204 });

@@ -4,7 +4,7 @@
 export default function BotonPedirSugerencia(props: {
   ideaId: string;
   onPedir: (ideaId: string) => void;
-  estado: 'quieto' | 'loading' | 'error' | 'rate';
+  estado: 'quieto' | 'loading' | 'error' | 'rate' | 'indisponible';
 }) {
   const texto =
     props.estado === 'loading'
@@ -13,17 +13,24 @@ export default function BotonPedirSugerencia(props: {
         ? 'No se pudo procesar. Reintentar'
         : props.estado === 'rate'
           ? 'Has usado tu analisis de hoy. Vuelve manana'
-          : 'Pedir sugerencia ✦';
+          : props.estado === 'indisponible'
+            ? 'La AI no esta disponible todavia. Reintentar'
+            : 'Pedir sugerencia ✦';
   return (
     <button
       type="button"
       aria-label={
         props.estado === 'rate'
           ? 'Analisis de hoy agotado, vuelve manana'
-          : `Pedir sugerencia de la AI para esta idea ${props.ideaId}`
+          : props.estado === 'indisponible'
+            ? 'La AI no esta disponible todavia'
+            : `Pedir sugerencia de la AI para esta idea ${props.ideaId}`
       }
       onClick={() =>
-        (props.estado === 'quieto' || props.estado === 'error') && props.onPedir(props.ideaId)
+        (props.estado === 'quieto' ||
+          props.estado === 'error' ||
+          props.estado === 'indisponible') &&
+        props.onPedir(props.ideaId)
       }
       disabled={props.estado === 'loading' || props.estado === 'rate'}
       className="min-h-11 text-[13px] font-medium text-text-soft"

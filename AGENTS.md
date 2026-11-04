@@ -6,9 +6,10 @@ Documento de verdad: `docs/FOUNDATION.md` — no escribir código sin haberlo le
 Memoria viva: `docs/PROJECT_STATE.md` — se lee al inicio de cada sesión.
 
 ## Stack
-- Next.js 14 App Router + TypeScript + Tailwind
-- Backend: Supabase (confirmado por David 2026-11-01) — migraciones vía SQL/CLI, no hay MCP de Supabase en este host
-- Deploy: Vercel (MCP activo)
+- Next.js 16.4.5 App Router + TypeScript + Tailwind (React 18, deprecado: subir a 19 antes de Next 17)
+- Next 16: `cookies()` y `params` son async (`await createClient()`, `await params`); middleware vive en `src/proxy.ts`; lint = `eslint .`
+- Backend: Supabase proyecto `vgtbznppcthyitnzgmlt` (us-east-1) — migraciones 0001-0005 aplicadas; SQL/CLI
+- Deploy: Vercel proyecto `mente`, producción https://mente-ten-iota.vercel.app
 
 ## Reglas de código (obligatorias)
 - Auth en cada API route: `if (!user) return 401`

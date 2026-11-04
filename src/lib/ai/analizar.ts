@@ -9,7 +9,9 @@ import { MAX_TEXTO } from '@/lib/biblioteca';
 import type { Coleccion } from '@/lib/types';
 
 export type SugerenciaNueva = { tipo: string; payload: Record<string, unknown> };
-type SupabaseCliente = ReturnType<typeof import('@/utils/supabase/server').createClient>;
+type SupabaseCliente = Awaited<
+  ReturnType<typeof import('@/utils/supabase/server').createClient>
+>;
 
 const CAP_PROMPT = 6000; /* bloque de contenido enviado al modelo */
 const LIMITE_CONEXIONES = 4;
@@ -24,7 +26,7 @@ export async function obtenerContenido(
   if (idea.kind === 'texto') return idea.text.slice(0, CAP_PROMPT);
   if (idea.kind === 'link') {
     if (!idea.sourceUrl) throw new Error('El item no tiene link');
-    const url = urlExternaSegura(idea.sourceUrl);
+    const url = await urlExternaSegura(idea.sourceUrl);
     if (!url) throw new Error('_url_no_segura');
     const c = await descargarSeguro(url);
     if (c.clase === 'audio' || c.clase === 'video')

@@ -1,12 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import type { ReactElement } from 'react';
 import type { TabId } from '@/lib/types';
 
-const TABS: { id: TabId; label: string; ariaLabel: string }[] = [
-  { id: 'foco', label: 'Foco', ariaLabel: 'Ir a Foco' },
-  { id: 'bandeja', label: 'Bandeja', ariaLabel: 'Ir a la Bandeja de entrada' },
-  { id: 'biblioteca', label: 'Biblioteca', ariaLabel: 'Ir a la Biblioteca' }
+const TABS: { id: TabId; label: string; ariaLabel: string; href: string }[] = [
+  { id: 'foco', label: 'Foco', ariaLabel: 'Ir a Foco', href: '/foco' },
+  { id: 'bandeja', label: 'Bandeja', ariaLabel: 'Ir a la Bandeja de entrada', href: '/' },
+  { id: 'biblioteca', label: 'Biblioteca', ariaLabel: 'Ir a la Biblioteca', href: '/biblioteca' }
 ];
 
 function iconoDe(tab: TabId, activa: boolean): ReactElement {
@@ -36,10 +37,7 @@ function iconoDe(tab: TabId, activa: boolean): ReactElement {
   );
 }
 
-export default function BottomNav(props: {
-  active: TabId;
-  onChange: (tab: TabId) => void;
-}) {
+export default function BottomNav(props: { active: TabId }) {
   return (
     <nav
       aria-label="Secciones"
@@ -48,12 +46,11 @@ export default function BottomNav(props: {
       {TABS.map((tab) => {
         const activa = tab.id === props.active;
         return (
-          <button
+          <Link
             key={tab.id}
-            type="button"
+            href={tab.href}
             aria-label={tab.ariaLabel}
             aria-current={activa ? 'page' : undefined}
-            onClick={() => props.onChange(tab.id)}
             className={`flex h-16 flex-1 flex-col items-center justify-center gap-0.5 text-[12px] font-medium focus-visible:ring-2 focus-visible:ring-accent ${
               activa ? 'text-text' : 'text-text-soft'
             }`}
@@ -64,7 +61,7 @@ export default function BottomNav(props: {
               aria-hidden="true"
               className={`h-0.5 w-5 rounded-full ${activa ? 'bg-accent' : 'bg-transparent'}`}
             />
-          </button>
+          </Link>
         );
       })}
     </nav>

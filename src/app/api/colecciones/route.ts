@@ -5,7 +5,7 @@ import type { Coleccion } from '@/lib/types';
 
 export async function GET() {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
@@ -25,7 +25,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
@@ -61,5 +61,10 @@ function buildInsertRow(body: unknown): Record<string, unknown> | null {
   if (typeof nombre !== 'string') return null;
   const n = nombre.trim();
   if (n.length === 0 || n.length > 80) return null;
-  return { nombre: n, color: typeof color === 'string' && color.length === 7 ? color : null };
+  let colorOk: string | null = null;
+  if (color !== undefined && color !== null) {
+    if (typeof color !== 'string' || !/^#[0-9A-Fa-f]{6}$/.test(color)) return null;
+    colorOk = color;
+  }
+  return { nombre: n, color: colorOk };
 }

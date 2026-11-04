@@ -2,18 +2,19 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { mapIdeaRow, SELECT_IDEA } from '@/lib/ideas';
 import { aplicarCambio } from '@/lib/ideaAcciones';
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
   try {
-    const supabase = createClient();
+    const { id } = await params;
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
     const { data, error } = await supabase
       .from('ideas')
       .select(SELECT_IDEA)
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (error) throw error;
@@ -27,7 +28,8 @@ export async function GET(_request: Request, { params }: Params) {
 /** PUT unificado: acciones del modulo 2 o el contrato { archivada } del modulo 1 */
 export async function PUT(request: Request, { params }: Params) {
   try {
-    const supabase = createClient();
+    const { id } = await params;
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
@@ -36,7 +38,7 @@ export async function PUT(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'Datos invalidos' }, { status: 400 });
     }
 
-    const resultado = await aplicarCambio(supabase, params.id, body);
+    const resultado = await aplicarCambio(supabase, id, body);
     if (resultado === 'invalido') {
       return NextResponse.json({ error: 'Datos invalidos' }, { status: 400 });
     }
@@ -52,11 +54,12 @@ export async function PUT(request: Request, { params }: Params) {
 
 export async function DELETE(_request: Request, { params }: Params) {
   try {
-    const supabase = createClient();
+    const { id } = await params;
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
-    const { error } = await supabase.from('ideas').delete().eq('id', params.id);
+    const { error } = await supabase.from('ideas').delete().eq('id', id);
     if (error) throw error;
     return new NextResponse(null, { status: 204 });
   } catch (error: unknown) {

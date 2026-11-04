@@ -11,9 +11,10 @@ import { guardarMinuta } from '@/lib/ai/sugerencias';
  *   minuta    -> aceptar guarda ai_minuta en ideas.entidades (base mod 7)
  *   descartar / descartar_permanente (hash del item en payload: no volver)
  */
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const supabase = createClient();
+    const { id } = await params;
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
@@ -26,7 +27,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const { data: previa, error: errLeer } = await supabase
       .from('sugerencias')
       .select('id,idea_id,tipo,payload,estado')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
     if (errLeer) throw errLeer;
 
@@ -39,7 +40,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
           estado: 'descartada_permanente',
           payload: { ...(previa.payload ?? {}), hash: `${previa.idea_id}:${previa.tipo}` }
         })
-        .eq('id', params.id);
+        .eq('id', id);
       if (error) throw error;
       return NextResponse.json({ ok: true, estado: 'descartada_permanente' });
     }
@@ -59,7 +60,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
     const { error } = await supabase
       .from('sugerencias')
       .update({ estado })
-      .eq('id', params.id);
+      .eq('id', id);
     if (error) throw error;
     return NextResponse.json({ ok: true, estado });
   } catch (error: unknown) {

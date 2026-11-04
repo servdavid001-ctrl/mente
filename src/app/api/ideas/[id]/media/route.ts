@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { mapIdeaRow, SELECT_IDEA } from '@/lib/ideas';
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
 /**
  * el blob ya se sube DESDE el cliente directo al bucket biblioteca-media con su
@@ -10,7 +10,8 @@ type Params = { params: { id: string } };
  */
 export async function POST(request: Request, { params }: Params) {
   try {
-    const supabase = createClient();
+    const { id } = await params;
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
@@ -26,7 +27,7 @@ export async function POST(request: Request, { params }: Params) {
     const { data, error } = await supabase
       .from('ideas')
       .update({ media_url: ruta, tipo: 'arte' })
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('estado', 'biblioteca')
       .select(SELECT_IDEA)
       .single();

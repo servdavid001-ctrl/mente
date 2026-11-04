@@ -1,30 +1,33 @@
 # PROJECT_STATE — Mente (provisional)
-Última actualización: 2026-11-01
+Última actualización: 2026-11-04
 
 ## Estado actual
-Módulo completado: Fundamento (módulo 1) — login + bandeja funcional + capture texto/voz/link + PWA, build verde (62c8de9).
+Módulos 1-3 completados y **desplegados en producción** (2026-11-04) sobre Next 16.4.5 + Supabase `vgtbznppcthyitnzgmlt`. Security audit: APROBADO. Build verde, 0 vulnerabilidades npm.
 Siguiente módulo: 4. Proyectos, Objetivos y Panel de Foco.
 
+## Producción
+- URL: https://mente-ten-iota.vercel.app
+- Vercel: proyecto `mente` (team servdavid001-2819s-projects), SSO protection reactivada.
+- Supabase: `vgtbznppcthyitnzgmlt` (us-east-1). Migraciones 0001-0005 aplicadas y registradas.
+- GitHub: `servdavid001-ctrl/mente`, rama `main`.
+
 ## Módulos completados
-| Módulo | Rutas | Tablas | Estado |
-|---|---|---|---|
-| 1. Fundamento | /, /login, /api/ideas[/id] | ideas + storage ideas-audio | ✓ |
-| 2. Biblioteca creativa | /biblioteca[/id], /api/colecciones[/id], /api/conexiones, /api/ideas/[id]/media | colecciones + conexiones + ideas biblioteca + bucket biblioteca-media | ✓ |
-| 3. AI organizadora | /api/ai/analizar/[id], /api/ai/sugerencias[/id], /api/ai/explicar | ideas +transcripcion/+entidades, sugerencias | ✓ (ver docs/modules/ai.md) |
+| Módulo | Rutas | Estado |
+|---|---|---|
+| 1. Fundamento | /, /login, /api/ideas[/id] | ✓ |
+| 2. Biblioteca creativa | /biblioteca[/id], /api/colecciones[/id], /api/conexiones | ✓ |
+| 3. AI organizadora | /api/ai/analizar/[id], /api/ai/sugerencias[/id], /api/ai/explicar | ✓ (requiere AI key) |
+| Navegación | /foco + BottomNav con Link real | ✓ (fix P0 #8) |
 
-## Deuda del modulo 1 (para el siguiente modulo o enmienda)
-- Foco y Biblioteca = placeholders de la spec del modulo 1 (se construyen en modulos 2 y 4).
-- Confirmacion por email: signUp queda sin sesion hasta confirmar (Auth del proyecto); el flujo principal v1 es signIn.
-- Nota de voz: la card guarda ruta en el bucket y reproduce con URL firmada on demand; el archivo de audio no se borra si la idea se elimina (orphan аудio — limpiar en higiene asistida).
-- Archivadas: columna archivada (adicion documentada a 0001, desviacion justificada del enum estado); no hay UI de ver archivadas (higiene asistida la trae).
-- SW offline: manifest listo pero no service worker custom (v1 PWA minima).
-
-## Deuda del modulo 3
-- OPENROUTER_API_KEY no existe aun en el entorno (el provider la soporta como fallback del chat).
-- Rate limit diario 50 analisis por counter (no token-bucket); transcripcion solo con key OpenAI (409 con copy).
-- Conexiones propuestas: max 4 por analisis embedding-lite (keywords), sin embeddings reales (v2 posible).
-- Minuta guardada en ideas.entidades ai_minuta es deuda-productiva del modulo 7 (aqui solo se guarda).
-- Higiene asistida pendiente limpia audio orphan (heredada del modulo 1).
+## Deuda abierta
+- **AI no operativa en prod**: faltan `OPENROUTER_API_KEY` u `OPENAI_API_KEY` en Vercel. La UI degrada con 503 claro.
+- Transcripcion solo con key OpenAI (OpenRouter cubre chat, no audio).
+- React 18 deprecado en Next 16 (subir a React 19 antes de Next 17).
+- `eslint-config-next` sigue en 14 y eslint 8; `npm run lint` funciona con `eslint .`.
+- CSP en Report-Only con `unsafe-eval`; cookies de sesión no HttpOnly; errores PostgREST crudos al cliente (deudas Medias del audit, no bloqueantes).
+- Minuta AI guardada en `ideas.entidades.ai_minuta` (base del módulo 7). Higiene asistida pendiente de limpiar audio huérfano.
+- Sin service worker custom (PWA mínima).
+- MCP Supabase global corregido a `vgtbznppcthyitnzgmlt`; requiere reiniciar la sesión de opencode.
 
 ## Módulos pendientes (orden)
 1. Proyectos, Objetivos y Panel de Foco
@@ -34,42 +37,25 @@ Siguiente módulo: 4. Proyectos, Objetivos y Panel de Foco.
 
 ## Bugs abiertos AHORA
 (ninguno)
-- 2026-11-01 RESUELTO: P0 modulo 2 (/biblioteca mostraba placeholder de AppShell) — AppShell ahora renderiza children en bandeja+biblioteca, placeholder solo para foco. Bug-log #7 cerrado. Re-test S3-S6 PASS en vivo.
+- 2026-11-04 RESUELTO: P0 #8 BottomNav no navegaba. Fix: `BottomNav` con `next/link`, `AppShell` sin estado local, ruta `/foco`. Verificado en producción.
 
 ## Últimas decisiones
-- 2026-11-01: Estructura de app definida por David: 3 apartados (Foco / Bandeja / Biblioteca creativa). Proyectos plegables por decisión del usuario, nunca bloqueados.
-- 2026-11-01: MCP conector + programador/activador → movidas a v2 por decisión de David.
-- 2026-11-01: Captura por WhatsApp → v2 (posible), no v1.
-- 2026-11-01: Nombre provisional "mente" hasta que David defina el definitivo.
-- 2026-11-01: Backend confirmado: Supabase (David). Convex MCP deshabilitado.
+- 2026-11-04: Proyecto Supabase correcto = `vgtbznppcthyitnzgmlt`; el anterior del MCP (`emquosormmqyfoxtqtea`) estaba borrado.
+- 2026-11-04: Upgrade Next 14.2.35 → 16.4.5 por advisories críticos (C1). `middleware.ts` → `proxy.ts`; cookies/params async.
+- 2026-11-04: Registro cerrado (`disable_signup=true`, password mínimo 12) y botón de signup eliminado (contrato single-user).
+- 2026-11-04: Rate limit AI atómico por RPC `consumir_analisis` (50/día, cuenta intentos); SSRF con DNS fijado (undici); validación UUID en conexiones; migración 0005.
+- 2026-11-01: Estructura de 3 apartados (Foco / Bandeja / Biblioteca). Proyectos plegables por decisión del usuario, nunca bloqueados.
 
 ## Alertas activas
-- Backend confirmado: Supabase. Falta: URL + anon key + service_role key de David (se piden UNA vez) para conectar auth y tabla ideas del módulo 1.
-- MCP convex deshabilitado tras decisión de backend.
-- Referencias de diseño analizadas con REA: albo.inc + notion.com (evidencia en sesión 2026-11-01).
+- **Falta AI key** para activar módulo 3 en producción (David).
+- Rotar el token `sbp_...` de la config global de opencode (quedó visible en logs de sesión).
+- Referencias de diseño: albo.inc + notion.com (REA, 2026-11-01).
 
 ---
-## QA REPORT — 2026-11-01 (qa-navigator en vivo)
-URL analizada: http://localhost:3000 (produccion local, npm start) | Activado por: usuario (corto) | Scope: modulo 1 Bandeja (escenarios 1-7 + 9)
-Resultado: 7 OK | 0 P0 desplegados ya corregidos | 1 P0 nuevo | 3 P2
-
-### Flujos verificados
-- Esc1 sin sesion → redirect /login: PASS (cookie previa en perfil limpiada para probar redirect real)
-- Esc2 login → shell 3 apartados (Foco/Bandeja/Biblioteca), Bandeja aria-current="page": PASS
-- Esc3 texto "idea de prueba QA" → item ✗ Texto, composer limpio: PASS
-- Esc4 link https://example.com/articulo → FAIL: 3x POST /api/ideas 400 (ver Bug.md #1)
-- Esc5 mic → toast descriptivo "No pudimos usar el microfono..." + composer usable tras error: PASS
-- Esc6 archivar+undo<6s vuelve (undo@~1.2s, item restaura), archivar sin undo se va (3 PUT 200, persisten): PASS
-- Esc7 eliminar 2 pasos + undo<6s (DELETE 204 → POST 201 restaura), eliminar sin undo se va: PASS
-- Esc8 screenshot bandeja → /tmp/opencode/qa-screens/bandeja-qa.png: OK
-
-### Const no bloqueantes
-- Vitals bandeja: TTFB 793ms, FCP/LCP 1076ms, CLS 0, 0 errores JS consola, 0 excepciones.
-- favicon.ico 404 (P2), mensaje de error de envio generico (Bug.md #2).
-
-### Pendientes para troubleshooter
-- [ ] Bug.md #1 P0 captura de link (archivo/linea en Bug.md)
-- [ ] Bug.md #2-#4 P2 (mensajes de error, favicon, delay del undo prompt)
-
-### Nota de entorno
-- El archivo de credenciales /tmp/opencode/mente-admin.txt tiene formato (email/password/user_id), no password plana. Primer intento de login 400 fue error de parsing del QA, no bug de la app (verificado luego 200 y login en navegador OK).
+## QA REPORT — 2026-11-04 (producción)
+URL: https://mente-ten-iota.vercel.app | Playwright headless + sesión real
+- Login 307→/login y signIn 200: PASS
+- Captura texto (POST /api/ideas 201 + item visible): PASS
+- Navegación Bandeja → Biblioteca → Bandeja → Foco con URL real: PASS
+- 0 pageerrors, 0 excepciones; vitals previos FCP/LCP 452ms, CLS 0.
+- Preview QA previo: 18 flujos OK, 0 P1; P2 de copy AI corregido (estado `indisponible`).

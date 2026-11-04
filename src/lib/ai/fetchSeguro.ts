@@ -1,14 +1,22 @@
 /**
  * Fetch externo SEGURO (audit del modulo 3): solo http/https con new URL(),
- * bloqueo SSRF de hosts internos, redirect manual max 2 re-validado, timeout
- * 10s y cap por bytes (1MB html/texto, 25MB audio/video para Whisper).
+ * bloqueo SSRF de hosts internos, DNS validado y fijado en un Agent de undici
+ * (anti-rebinding), redirect manual max 2 re-validado, timeout 10s y cap por
+ * bytes (1MB html/texto, 25MB audio/video para Whisper).
  */
+
+import { lookup } from 'node:dns/promises';
+import { isIP, type LookupFunction } from 'node:net';
+import { Agent, fetch as undiciFetch } from 'undici';
+import { hostBloqueado, ipBloqueada, normalizarHost } from './ipSeguro';
 
 export type Contenido = {
   clase: 'html' | 'audio' | 'video' | 'otros';
   contentType: string;
   bytes: ArrayBuffer | null;
 };
+
+type Direccion = { address: string; family: number };
 
 const TIMEOUT_MS = 10_000;
 const CAP_HTML = 1_048_576; /* ~1MB */
@@ -19,32 +27,35 @@ const HEADERS_UA = {
   Accept: 'text/html,application/xhtml+xml;q=0.9,text/plain;q=0.8,*/*;q=0.5'
 };
 
-function ipInterna(raw: string): boolean {
-  const p = raw.split('.').map((n) => Number(n));
-  if (p.some((n) => !Number.isInteger(n) || n < 0 || n > 255)) return false;
-  if (p[0] === 127 || p[0] === 10) return true;
-  if (p[0] === 192 && p[1] === 168) return true;
-  if (p[0] === 172 && p[1] >= 16 && p[1] <= 31) return true;
-  if (p[0] === 169 && p[1] === 254) return true; /* link local */
-  return false;
+/** valida esquema/host y resuelve DNS; devuelve solo direcciones ya seguras */
+async function resolverDestino(u: URL): Promise<Direccion[] | null> {
+  if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+  const host = normalizarHost(u.hostname);
+  if (hostBloqueado(host)) return null;
+  const version = isIP(host);
+  if (version === 4 || version === 6) {
+    return ipBloqueada(host) ? null : [{ address: host, family: version }];
+  }
+  try {
+    const ips = await lookup(host, { all: true, verbatim: true });
+    if (ips.length === 0) return null;
+    /* todas las respuestas DNS deben ser publicas (anti DNS mixto) */
+    if (ips.some((ip) => ipBloqueada(ip.address))) return null;
+    return ips.map((ip) => ({ address: ip.address, family: ip.family }));
+  } catch {
+    return null;
+  }
 }
 
 /** valida esquema y host; null cuando la URL no es externa segura (SSRF) */
-export function urlExternaSegura(raw: string): URL | null {
+export async function urlExternaSegura(raw: string): Promise<URL | null> {
   let u: URL;
   try {
     u = new URL(raw);
   } catch {
     return null;
   }
-  if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
-  const host = u.hostname.toLowerCase();
-  if (host === '' || host === 'localhost') return null;
-  if (host.endsWith('.local') || host.endsWith('.internal') || host === 'metadata') return null;
-  if (ipInterna(host)) return null;
-  if (host === '::1' || host === '[::1]' || host.startsWith('fe80') || host.startsWith('fc') || host.startsWith('fd'))
-    return null;
-  return u;
+  return (await resolverDestino(u)) ? u : null;
 }
 
 /** lectura con cap: acumula hasta el limite y aborta el reader (sin bucle infinito) */
@@ -82,31 +93,59 @@ function claseDe(tipo: string): Contenido['clase'] {
   return 'otros';
 }
 
+/** Agent con lookup fijo a una IP ya validada: evita rebinding entre DNS y TCP */
+function agenteFijado(destino: Direccion): Agent {
+  const lookupFijado: LookupFunction = (_hostname, options, callback) => {
+    /* Node puede pedir todas las direcciones (autoSelectFamily): se usa la fijada */
+    if (options.all) callback(null, [{ address: destino.address, family: destino.family }]);
+    else callback(null, destino.address, destino.family);
+  };
+  return new Agent({ connect: { lookup: lookupFijado } });
+}
+
+function urlDeRedirect(destino: string, base: URL): URL {
+  try {
+    return new URL(destino, base);
+  } catch {
+    throw new Error('_demasiados_redirects');
+  }
+}
+
 /** descarga segura del contenido externo con redirects re-validados (max 2) */
 export async function descargarSeguro(url: URL, saltosRestantes = 2): Promise<Contenido> {
+  const destinos = await resolverDestino(url);
+  if (!destinos) throw new Error('_url_no_segura');
   const control = new AbortController();
   const timer = setTimeout(() => control.abort(), TIMEOUT_MS);
+  /* preferir IPv4 cuando exista: evita entornos sin ruta IPv6 */
+  const fijada = destinos.find((d) => d.family === 4) ?? destinos[0];
+  const agent = agenteFijado(fijada);
   try {
-    const res = await fetch(url, {
+    const res = await undiciFetch(url, {
       redirect: 'manual',
       signal: control.signal,
-      headers: HEADERS_UA
+      headers: HEADERS_UA,
+      dispatcher: agent
     });
     const tipo = (res.headers.get('content-type') ?? '').toLowerCase();
     if (res.status >= 300 && res.status < 400) {
       if (saltosRestantes <= 0) throw new Error('_demasiados_redirects');
       const destino = res.headers.get('location');
       if (!destino) throw new Error('_demasiados_redirects');
-      const siguiente = urlExternaSegura(new URL(destino, url).href);
-      if (!siguiente) throw new Error('_url_no_segura');
+      const siguiente = urlDeRedirect(destino, url);
       return descargarSeguro(siguiente, saltosRestantes - 1);
     }
     if (!res.ok) throw new Error(`_http_${res.status}`);
     const clase = claseDe(tipo);
     const cap = clase === 'html' || clase === 'otros' ? CAP_HTML : CAP_MEDIA;
-    return { clase, contentType: tipo, bytes: await leerConCap(res.body, cap) };
+    return {
+      clase,
+      contentType: tipo,
+      bytes: await leerConCap(res.body as ReadableStream<Uint8Array> | null, cap)
+    };
   } finally {
     clearTimeout(timer);
+    await agent.close();
   }
 }
 

@@ -15,9 +15,21 @@ type Mensaje = { de: 'ai' | 'yo'; texto: string };
 
 export async function POST(request: Request) {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
+
+    /* rate atomico (security definer): se consume solo con sesion valida */
+    const { data: permitido, error: errRate } = await supabase.rpc('consumir_analisis', {
+      p_max: 50
+    });
+    if (errRate) throw errRate;
+    if (permitido !== true) {
+      return NextResponse.json(
+        { error: 'Has usado tu analisis de hoy. Vuelve manana — tus ideas siguen intactas.' },
+        { status: 429 }
+      );
+    }
 
     const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
     const ideaId = typeof body?.ideaId === 'string' ? body.ideaId : '';
@@ -97,16 +109,17 @@ export async function POST(request: Request) {
     ];
 
     const cruda = await chatStream(mensajes);
-    if (!cruda || !cruda.ok || !cruda.body) {
-      /* sin provider disponible (sin key o region-blocked): mensaje claro,
-       * sin detalles de key/region en el body */
-      return NextResponse.json({ error: MENSAJE_AI_INDISPONIBLE }, { status: 503 });
-    }
-    if (cruda.status === 429) {
+    /* el 429 del provider se evalua ANTES de !ok para no degradarlo a 503 */
+    if (cruda && cruda.status === 429) {
       return NextResponse.json(
         { error: 'Has usado tu analisis de hoy. Vuelve manana — tus ideas siguen intactas.' },
         { status: 429 }
       );
+    }
+    if (!cruda || !cruda.ok || !cruda.body) {
+      /* sin provider disponible (sin key o region-blocked): mensaje claro,
+       * sin detalles de key/region en el body */
+      return NextResponse.json({ error: MENSAJE_AI_INDISPONIBLE }, { status: 503 });
     }
 
     const decoder = new TextDecoder();
