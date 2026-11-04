@@ -22,7 +22,9 @@ export default function BotonPedirSugerencia(props: {
           ? 'Analisis de hoy agotado, vuelve manana'
           : `Pedir sugerencia de la AI para esta idea ${props.ideaId}`
       }
-      onClick={() => props.estado === 'quieto' && props.onPedir(props.ideaId)}
+      onClick={() =>
+        (props.estado === 'quieto' || props.estado === 'error') && props.onPedir(props.ideaId)
+      }
       disabled={props.estado === 'loading' || props.estado === 'rate'}
       className="min-h-11 text-[13px] font-medium text-text-soft"
     >

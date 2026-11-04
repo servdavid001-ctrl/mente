@@ -117,6 +117,12 @@ export async function POST(_request: Request, { params }: { params: { id: string
         { status: 413 }
       );
     }
+    if (mensaje.startsWith('_http_')) {
+      return NextResponse.json(
+        { error: 'No encontramos contenido en este link.' },
+        { status: 422 }
+      );
+    }
     if (mensaje === 'No encontramos contenido en este link.')
       return NextResponse.json({ error: 'No encontramos contenido en este link.' }, { status: 422 });
     return NextResponse.json({ error: mensaje }, { status: 500 });
