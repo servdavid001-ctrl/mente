@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { mapIdeaRow, SELECT_IDEA } from '@/lib/ideas';
+import { MENSAJE_AI_INDISPONIBLE } from '@/lib/ai/provider';
 import {
   analizarItem,
   type SugerenciaNueva
@@ -102,8 +103,8 @@ export async function POST(_request: Request, { params }: { params: { id: string
     });
   } catch (error: unknown) {
     const mensaje = error instanceof Error ? error.message : 'Error';
-    if (mensaje === 'La transcripcion requiere una key de OpenAI') {
-      return NextResponse.json({ error: mensaje }, { status: 409 });
+    if (mensaje === MENSAJE_AI_INDISPONIBLE) {
+      return NextResponse.json({ error: mensaje }, { status: 503 });
     }
     if (mensaje === '_url_no_segura') {
       return NextResponse.json(
@@ -118,8 +119,9 @@ export async function POST(_request: Request, { params }: { params: { id: string
       );
     }
     if (mensaje.startsWith('_http_')) {
+      const status = mensaje.replace('_http_', '');
       return NextResponse.json(
-        { error: 'No encontramos contenido en este link.' },
+        { error: `No pudimos abrir el link (HTTP ${status}). Reintenta con otro.` },
         { status: 422 }
       );
     }

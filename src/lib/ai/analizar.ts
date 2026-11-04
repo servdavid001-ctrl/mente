@@ -3,7 +3,7 @@
  * conexiones embedding-lite contra el resto de la biblioteca. */
 
 import { descargarSeguro, extraerTextoHtml, urlExternaSegura } from './fetchSeguro';
-import { transcribir, chat, errorSinTranscripcion } from './provider';
+import { transcribir, chat } from './provider';
 import { extraerPalabras, palabrasCompartidas } from './keywords';
 import { MAX_TEXTO } from '@/lib/biblioteca';
 import type { Coleccion } from '@/lib/types';
@@ -50,7 +50,6 @@ async function transcribirBytes(bytes: ArrayBuffer | null, nombre: string): Prom
   if (!bytes || bytes.byteLength === 0) throw new Error('_demasiado_grande');
   try {
     const texto = await transcribir(bytes, nombre);
-    if (texto === null) throw errorSinTranscripcion(); /* falta key OpenAI -> 409 */
     if (texto === '') throw new Error('No encontramos contenido en este audio.');
     return texto;
   } catch (e: unknown) {

@@ -13,6 +13,11 @@ export type Contenido = {
 const TIMEOUT_MS = 10_000;
 const CAP_HTML = 1_048_576; /* ~1MB */
 const CAP_MEDIA = 25 * 1_048_576; /* 25MB, contracto Whisper */
+/* UA realista: Wikipedia y varios sitios devuelven 403 sin User-Agent */
+const HEADERS_UA = {
+  'User-Agent': 'Mozilla/5.0 (compatible; MenteBot/1.0)',
+  Accept: 'text/html,application/xhtml+xml;q=0.9,text/plain;q=0.8,*/*;q=0.5'
+};
 
 function ipInterna(raw: string): boolean {
   const p = raw.split('.').map((n) => Number(n));
@@ -82,7 +87,11 @@ export async function descargarSeguro(url: URL, saltosRestantes = 2): Promise<Co
   const control = new AbortController();
   const timer = setTimeout(() => control.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(url, { redirect: 'manual', signal: control.signal });
+    const res = await fetch(url, {
+      redirect: 'manual',
+      signal: control.signal,
+      headers: HEADERS_UA
+    });
     const tipo = (res.headers.get('content-type') ?? '').toLowerCase();
     if (res.status >= 300 && res.status < 400) {
       if (saltosRestantes <= 0) throw new Error('_demasiados_redirects');

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { SELECT_IDEA, mapIdeaRow } from '@/lib/ideas';
-import { chatStream, type ChatMsg } from '@/lib/ai/provider';
+import { chatStream, MENSAJE_AI_INDISPONIBLE, type ChatMsg } from '@/lib/ai/provider';
 import { extraerPalabras } from '@/lib/ai/keywords';
 
 /**
@@ -98,7 +98,9 @@ export async function POST(request: Request) {
 
     const cruda = await chatStream(mensajes);
     if (!cruda || !cruda.ok || !cruda.body) {
-      return NextResponse.json({ error: 'Tu AI no respondio. Reintentar' }, { status: 502 });
+      /* sin provider disponible (sin key o region-blocked): mensaje claro,
+       * sin detalles de key/region en el body */
+      return NextResponse.json({ error: MENSAJE_AI_INDISPONIBLE }, { status: 503 });
     }
     if (cruda.status === 429) {
       return NextResponse.json(

@@ -86,3 +86,40 @@ Resultado: 3 OK | 2 P0 nuevos | 1 P0 re-test
 - screenshots: /tmp/opencode/qa-screens/biblioteca.png (evidencia del placeholder), bandeja.png.
 - Bug.md raiz elimine; su contenido + esta nueva P0 movidos a docs/history/bugs-log.md (#6, #7).
 - Veredicto: RECHAZADO
+
+---
+## QA REPORT — 2026-11-04 05:15 (modulo 3 AI, prod local localhost:3000)
+URL analizada: http://localhost:3000 | Activado por: CTO | Scope: modulo 3 (AI)
+Resultado: 3 OK | 1 P1 | 2 P0
+
+### P0 — CRITICOS
+#### [ ] Analisis automatico falla en links de Wikipedia (Esc 2)
+- Flujo: pegar https://es.wikipedia.org/wiki/Fotografia en Bandeja -> auto-analisis
+- Sintoma: POST /api/ai/analizar -> 500 luego 422 "No encontramos contenido en este link."; sin transcripcion/entidades/conexiones
+- Capa: agent-browser + diagnostico local
+- Causa raiz: src/lib/ai/fetchSeguro.ts descargarSeguro() hace fetch SIN header User-Agent -> Wikipedia devuelve 403 -> _http_403 -> mapea a 422 falsa "sin contenido" (el HTML es parseable: verificado extraccion local OK, 411KB)
+- Archivo: src/lib/ai/fetchSeguro.ts ~linea 80 (agregar headers: {'User-Agent': 'Mozilla/5.0 (compatible)'} en el fetch)
+- Estado: Pendiente (troubleshooter)
+- NOTA: 500 inicial adicional detectado en POST /api/ai/analizar/5374868f (2x) — probable chat AI fallando; revisar body/capacidad OpenRouter
+
+#### [ ] POST /api/ai/explicar -> 502 (Esc 5)
+- Flujo: boton Explicar en item "texto de control"
+- Sintoma: panel abre con estado de error y boton Reintentar (sin crash), nunca hay respuesta en 3 secciones
+- Capa: agent-browser
+- Causa raiz probable: ninguna credencial OpenAI/OpenRouter valida o ambas fallando (chat() lanza AI-500 tras cascada); verificar env vars en el server local
+- Archivo: src/lib/ai/provider.ts chat() + ruta /api/ai/explicar
+- Estado: Pendiente (troubleshooter)
+
+### P1 — IMPORTANTES
+#### [ ] Esc 3/4/6 no ejecutables por bloqueo del P0 de analisis
+- Sugerencia de categoria, conexion propuesta y minuta dependen de que el analisis corra. La UI ya renderiza chip "Pedir sugerencia de la AI" (item 8ed35aea) — re-testear tras fix P0.
+
+### FLUJOS SIN ERRORES
+- [x] Esc 1 Login: supabase auth token 200, redirect a Bandeja, 0 errores consola
+- [x] Esc 7 Resilencia: link example.com/404page -> 422, item visible, mensaje claro, sin crash, sin 'sk-' en payloads
+- [x] Esc 8 Consola/red: 0 errores/warnings JS; requests fallidas solo las esperadas (422 analisis, 502 explicar); 0 logs con 'sk-'
+
+### PENDIENTES PARA TROUBLESHOOTER
+- [ ] User-Agent en descargarSeguro — src/lib/ai/fetchSeguro.ts:~80
+- [ ] Verificar OPENAI_API_KEY/OPENROUTER_API_KEY del entorno local + body real del 502 en /api/ai/explicar
+- [ ] Re-ejecutar Esc 2,3,4,5,6 tras fixes
