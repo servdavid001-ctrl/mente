@@ -33,12 +33,14 @@ Siguiente: backlog v2 del FOUNDATION (no v1).
 - Capturas >4.5 MB fallan por body limit de Vercel.
 - Sin service worker de caché offline (solo passthrough para share-target).
 - Sin framework de tests configurado (gate = build + tsc + lint + QA en vivo).
+- Rate limit de registro best-effort por instancia (Map en memoria); reinicia con cold start.
 - MCP Supabase global corregido a `vgtbznppcthyitnzgmlt`; requiere reiniciar opencode.
 
 ## Bugs abiertos AHORA
 (ninguno)
 
 ## Últimas decisiones
+- 2026-11-05: Registro por invitacion (`/registro` + `REGISTRO_INVITE_CODE`); el signup publico de Supabase sigue cerrado. Logout anadido al header. Contrato single-user intacto.
 - 2026-11-05: Módulos 4-7 construidos sin IA: copiloto por líneas, captura por token de dispositivo, share-target solo POST (GET eliminado por CSRF), tareas extraídas de minuta/líneas.
 - 2026-11-05: `/compartir` exento del proxy pero con auth propia; mutación solo por POST.
 - 2026-11-04: Next 16.4.5, registro cerrado, rate limit AI atómico, SSRF con DNS fijado, migración 0005.
@@ -46,6 +48,7 @@ Siguiente: backlog v2 del FOUNDATION (no v1).
 
 ## Alertas activas
 - **Falta AI key** para activar módulo 3 (David).
+- **Codigo de invitacion activo**: `REGISTRO_INVITE_CODE` en Vercel y `.env.local` (rotarlo si se filtra).
 - Rotar token `sbp_...` de la config global de opencode (visible en logs de sesión).
 - Probar la extensión y el share-target en un dispositivo real (requiere instalar PWA y pegar token).
 

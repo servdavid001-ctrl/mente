@@ -34,3 +34,9 @@
 - Modulo 6: `share_target` POST multipart + service worker passthrough; `/compartir` exento del proxy pero con auth propia. GET eliminado por CSRF (mutacion solo POST).
 - Modulo 7: `tareas` + vista Hoy + conversion idea/plan→tareas (minuta o lineas). Extraccion sin IA.
 - Deuda aceptada: rate limits de captura/share, magic bytes, triggers de pertenencia, CSP/cookies, React 18, eslint 14.
+
+## 2026-11-05 - Registro por invitacion y logout
+- Registro funcional sin reabrir el signup publico: `/registro` + `POST /api/registro` valida `REGISTRO_INVITE_CODE` (timingSafeEqual) y crea el usuario con service_role + `email_confirm: true`. `disable_signup` sigue en true (signup directo = 422).
+- Rate limit del registro: 5 intentos/hora por IP en memoria (best-effort por instancia serverless).
+- Logout en el header (`signOut` + redirect a /login); verificado que invalida la sesion (API 401).
+- El contrato single-user del FOUNDATION se mantiene: no hay signup publico ni multiusuario abierto; las cuentas se crean con el codigo.
