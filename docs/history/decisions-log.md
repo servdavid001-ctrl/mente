@@ -40,3 +40,11 @@
 - Rate limit del registro: 5 intentos/hora por IP en memoria (best-effort por instancia serverless).
 - Logout en el header (`signOut` + redirect a /login); verificado que invalida la sesion (API 401).
 - El contrato single-user del FOUNDATION se mantiene: no hay signup publico ni multiusuario abierto; las cuentas se crean con el codigo.
+
+## 2026-11-05 - UI v2 (responsive, ajustes, tema y distribucion)
+- Shell dual: movil con bottom nav; desktop (md+) con sidebar 240/256px, header de seccion y contenido con max-width por pantalla. Bottom nav oculta en desktop.
+- Biblioteca grid 2/3/4 columnas; detalle y Foco a 2 columnas desde lg; login/registro como tarjeta de 26rem.
+- `/ajustes`: Cuenta (cambio de contrasena), Apariencia (Claro/Oscuro/Sistema persistido), Extension (ZIP + tokens), App movil (PWA + APK), AI (estado booleano), Datos (export JSON autenticado), Acerca de.
+- Tema oscuro con variables CSS y script pre-paint; contraste AA.
+- Extension empaquetada con iconos en `/downloads/mente-extension.zip`.
+- APK via Capacitor (WebView de produccion) compilado localmente con JDK 21 + Android SDK 35 y publicado en release `apk-1`. El workflow de CI queda en `docs/ci/` porque el PAT no tiene scope `workflow`.

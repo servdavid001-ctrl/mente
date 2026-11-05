@@ -2,8 +2,13 @@
 Última actualización: 2026-11-05
 
 ## Estado actual
-**v1 completa: módulos 1-7 implementados y desplegados en producción.** Build verde, 0 vulnerabilidades npm, security audit APROBADO, QA en vivo de módulos 1-7 sin errores de página.
-Siguiente: backlog v2 del FOUNDATION (no v1).
+**v1 completa + UI v2 (responsive, ajustes, tema, extension y APK) desplegada en producción.** Build verde, 0 vulnerabilidades npm, security audit APROBADO, QA en vivo de módulos 1-7 sin errores de página.
+Siguiente: pulido de UI y backlog v2 del FOUNDATION.
+
+## Distribución
+- Extension: https://mente-ten-iota.vercel.app/downloads/mente-extension.zip
+- APK (debug, Capacitor): https://github.com/servdavid001-ctrl/mente/releases/tag/apk-1
+- Panel de ajustes: /ajustes
 
 ## Producción
 - URL: https://mente-ten-iota.vercel.app
@@ -33,6 +38,9 @@ Siguiente: backlog v2 del FOUNDATION (no v1).
 - Capturas >4.5 MB fallan por body limit de Vercel.
 - Sin service worker de caché offline (solo passthrough para share-target).
 - Sin framework de tests configurado (gate = build + tsc + lint + QA en vivo).
+- CI del APK bloqueada: el PAT no tiene scope `workflow` para versionar `.github/workflows/`; el workflow vive en `docs/ci/`.
+- APK en debug (sin firma de release ni Play Store); el wrapper carga produccion por URL.
+- Iconos PWA solo SVG (Android puede pedir PNG para instalar).
 - Rate limit de registro best-effort por instancia (Map en memoria); reinicia con cold start.
 - MCP Supabase global corregido a `vgtbznppcthyitnzgmlt`; requiere reiniciar opencode.
 
@@ -40,6 +48,7 @@ Siguiente: backlog v2 del FOUNDATION (no v1).
 (ninguno)
 
 ## Últimas decisiones
+- 2026-11-05: UI v2: sidebar desktop (md+), grid 2/3/4, detalle a 2 columnas, tema claro/oscuro/sistema, /ajustes con 7 secciones, export JSON, ZIP de extension y APK Capacitor publicado.
 - 2026-11-05: Registro por invitacion (`/registro` + `REGISTRO_INVITE_CODE`); el signup publico de Supabase sigue cerrado. Logout anadido al header. Contrato single-user intacto.
 - 2026-11-05: Módulos 4-7 construidos sin IA: copiloto por líneas, captura por token de dispositivo, share-target solo POST (GET eliminado por CSRF), tareas extraídas de minuta/líneas.
 - 2026-11-05: `/compartir` exento del proxy pero con auth propia; mutación solo por POST.
@@ -53,6 +62,9 @@ Siguiente: backlog v2 del FOUNDATION (no v1).
 - Probar la extensión y el share-target en un dispositivo real (requiere instalar PWA y pegar token).
 
 ---
+## QA REPORT — 2026-11-05 (UI v2)
+390/768/1440 sin overflow; sidebar/bottom nav correctos; biblioteca 4 columnas en 1440; ajustes 7 secciones; tema oscuro persiste; export 200; ZIP 200; APK 200; 0 pageerrors.
+
 ## QA REPORT — 2026-11-05 (producción, módulos 4-7)
 URL: https://mente-ten-iota.vercel.app | Playwright + sesión real
 - Crear proyecto y abrir detalle: PASS
