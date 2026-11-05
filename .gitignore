@@ -8,3 +8,6 @@ next-env.d.ts
 supabase/.branches
 supabase/.temp
 .env*
+mobile/node_modules
+mobile/android
+mobile/www
