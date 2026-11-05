@@ -57,7 +57,7 @@ export default function InboxList(props: Props) {
     ) : (
       <EmptyState
         icon="sparkle"
-        title="Tu cerebro descanza tranquilo."
+        title="Tu cerebro descansa tranquilo."
         description="Anota lo que primero se te pase por la cabeza — aqui lo atajamos antes de que se te escape."
         anclaAbajo
       />

@@ -9,7 +9,7 @@ import IdeasProyecto from './IdeasProyecto';
 import TareasProyecto from '@/components/tareas/TareasProyecto';
 import { useDetalleProyecto } from './useDetalleProyecto';
 
-export default function ProyectoDetalle(props: { proyectoId: string }) {
+export default function ProyectoDetalle(props: { proyectoId: string; email?: string }) {
   const router = useRouter();
   const detalle = useDetalleProyecto(props.proyectoId);
   const proyecto = detalle.proyecto;
@@ -19,6 +19,7 @@ export default function ProyectoDetalle(props: { proyectoId: string }) {
     <AppShell
       activeTab="foco"
       titulo={proyecto?.nombre ?? 'Proyecto'}
+      email={props.email}
       headerLeft={
         <button
           type="button"
@@ -30,6 +31,7 @@ export default function ProyectoDetalle(props: { proyectoId: string }) {
         </button>
       }
     >
+      <div className="mx-auto w-full max-w-[64rem]">
       {detalle.toast ? (
         <p role="alert" className="mb-3 rounded-card bg-danger px-4 py-2.5 text-sm text-white">
           {detalle.toast}
@@ -79,20 +81,34 @@ export default function ProyectoDetalle(props: { proyectoId: string }) {
             onToggle={() => void detalle.alternarPlegado()}
           />
 
-          <ObjetivosProyecto
-            objetivos={detalle.objetivos}
-            ocupadoId={detalle.objetivoOcupado}
-            onCrear={detalle.agregarObjetivo}
-            onEstado={(objetivo) => void detalle.cambiarEstado(objetivo)}
-            onBorrar={(id) => void detalle.eliminarObjetivo(id)}
-            onTareasCreadas={() => setTareasVersion((v) => v + 1)}
-          />
+          <div className="space-y-5 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8">
+            <div className="min-w-0 space-y-5">
+              <ObjetivosProyecto
+                objetivos={detalle.objetivos}
+                ocupadoId={detalle.objetivoOcupado}
+                onCrear={detalle.agregarObjetivo}
+                onEstado={(objetivo) => void detalle.cambiarEstado(objetivo)}
+                onBorrar={(id) => void detalle.eliminarObjetivo(id)}
+                onTareasCreadas={() => setTareasVersion((v) => v + 1)}
+              />
 
-          <TareasProyecto key={`tareas-${tareasVersion}`} proyectoId={proyecto.id} />
+              <TareasProyecto key={`tareas-${tareasVersion}`} proyectoId={proyecto.id} />
+            </div>
 
-          <IdeasProyecto ideas={detalle.ideas} />
+            <aside className="min-w-0 space-y-4 lg:sticky lg:top-6">
+              <IdeasProyecto ideas={detalle.ideas} />
+              <button
+                type="button"
+                onClick={() => router.push('/foco')}
+                className="h-11 w-full rounded-card border border-border text-[14px] font-semibold text-text"
+              >
+                Volver a Foco
+              </button>
+            </aside>
+          </div>
         </div>
       ) : null}
+      </div>
     </AppShell>
   );
 }

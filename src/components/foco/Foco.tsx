@@ -12,14 +12,15 @@ import ExtensionCard from './ExtensionCard';
 import { useFoco } from './useFoco';
 import { mensajeGuardian } from '@/lib/foco';
 
-export default function Foco() {
+export default function Foco(props: { email?: string }) {
   const foco = useFoco();
   const desplegados = foco.proyectos.filter((p) => !p.plegado);
   const plegados = foco.proyectos.filter((p) => p.plegado);
   const objetivosActivos = foco.objetivos.filter((o) => o.estado === 'activo').length;
 
   return (
-    <AppShell activeTab="foco" titulo="Foco">
+    <AppShell activeTab="foco" titulo="Foco" email={props.email}>
+      <div className="mx-auto w-full max-w-[75rem]">
       {foco.toast ? (
         <p role="alert" className="mb-3 rounded-card bg-danger px-4 py-2.5 text-sm text-white">
           {foco.toast}
@@ -42,48 +43,54 @@ export default function Foco() {
       ) : null}
 
       {!foco.cargando && !foco.error ? (
-        <div className="space-y-5">
-          <MetricasFoco
-            proyectosDesplegados={desplegados.length}
-            objetivosActivos={objetivosActivos}
-            ideasSinProyecto={foco.sinProyecto}
-          />
-
-          <Guardian mensaje={mensajeGuardian(foco.proyectos)} />
-
-          <Hoy />
-
-          {foco.proyectos.length === 0 ? (
-            <EmptyState
-              icon="target"
-              title="Tu Foco empieza con un proyecto."
-              description="Crea uno abajo y el panel te dira donde esta tu atencion."
+        <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_20rem] xl:items-start xl:gap-8">
+          <div className="space-y-5">
+            <MetricasFoco
+              proyectosDesplegados={desplegados.length}
+              objetivosActivos={objetivosActivos}
+              ideasSinProyecto={foco.sinProyecto}
             />
-          ) : null}
 
-          <ListaProyectos
-            titulo="Desplegados"
-            ariaLabel="Proyectos desplegados"
-            proyectos={desplegados}
-            ocupadoId={foco.ocupadoId}
-            onToggle={(proyecto) => void foco.alternarPlegado(proyecto)}
-          />
+            <Guardian mensaje={mensajeGuardian(foco.proyectos)} />
 
-          <ListaProyectos
-            titulo="Guardados"
-            ariaLabel="Proyectos guardados"
-            proyectos={plegados}
-            ocupadoId={foco.ocupadoId}
-            onToggle={(proyecto) => void foco.alternarPlegado(proyecto)}
-          />
+            <Hoy />
 
-          <CrearProyectoInline onCrear={foco.crear} />
+            {foco.proyectos.length === 0 ? (
+              <EmptyState
+                icon="target"
+                title="Tu Foco empieza con un proyecto."
+                description="Crea uno abajo y el panel te dira donde esta tu atencion."
+              />
+            ) : null}
 
-          <ExtensionCard />
+            <ListaProyectos
+              titulo="Desplegados"
+              ariaLabel="Proyectos desplegados"
+              proyectos={desplegados}
+              ocupadoId={foco.ocupadoId}
+              onToggle={(proyecto) => void foco.alternarPlegado(proyecto)}
+            />
 
-          <Copiloto proyectos={foco.proyectos} onCreado={() => void foco.cargar(true)} />
+            <ListaProyectos
+              titulo="Guardados"
+              ariaLabel="Proyectos guardados"
+              proyectos={plegados}
+              ocupadoId={foco.ocupadoId}
+              onToggle={(proyecto) => void foco.alternarPlegado(proyecto)}
+            />
+
+            <CrearProyectoInline onCrear={foco.crear} />
+          </div>
+
+          <aside className="mt-5 space-y-4 xl:mt-0 xl:sticky xl:top-6">
+            <div className="xl:rounded-card xl:border xl:border-border xl:bg-surface xl:p-4">
+              <Copiloto proyectos={foco.proyectos} onCreado={() => void foco.cargar(true)} />
+            </div>
+            <ExtensionCard />
+          </aside>
         </div>
       ) : null}
+      </div>
     </AppShell>
   );
 }

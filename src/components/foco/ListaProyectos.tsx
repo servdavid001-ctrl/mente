@@ -11,18 +11,20 @@ export default function ListaProyectos(props: {
   if (props.proyectos.length === 0) return null;
 
   return (
-    <section aria-label={props.ariaLabel} className="space-y-2">
+    <section aria-label={props.ariaLabel}>
       <h2 className="text-[12px] font-semibold uppercase tracking-wide text-text-soft">
         {props.titulo}
       </h2>
-      {props.proyectos.map((proyecto) => (
-        <ProyectoCard
-          key={proyecto.id}
-          proyecto={proyecto}
-          ocupado={props.ocupadoId === proyecto.id}
-          onToggle={() => props.onToggle(proyecto)}
-        />
-      ))}
+      <div className="mt-2 grid gap-2 md:grid-cols-2 md:gap-3">
+        {props.proyectos.map((proyecto) => (
+          <ProyectoCard
+            key={proyecto.id}
+            proyecto={proyecto}
+            ocupado={props.ocupadoId === proyecto.id}
+            onToggle={() => props.onToggle(proyecto)}
+          />
+        ))}
+      </div>
     </section>
   );
 }

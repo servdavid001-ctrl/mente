@@ -3,13 +3,30 @@
   "name": "Mente — captura rapida",
   "version": "1.0.0",
   "description": "Guarda texto, links y capturas de pantalla en Mente.",
-  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
   "host_permissions": [
     "https://mente-ten-iota.vercel.app/*",
     "http://localhost:3000/*"
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Mente — captura rapida"
+    "default_title": "Mente — captura rapida",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   }
 }

@@ -19,10 +19,10 @@ export default function ColeccionChips(props: {
     <div
       role="group"
       aria-label="Colecciones"
-      className="space-y-0.5 overflow-x-auto whitespace-nowrap"
+      className="space-y-0.5 overflow-x-auto whitespace-nowrap md:overflow-visible md:whitespace-normal"
       style={{ WebkitOverflowScrolling: 'touch' }}
     >
-      <div className="flex w-full items-center gap-2 pb-1">
+      <div className="flex w-full items-center gap-2 pb-1 md:flex-wrap">
         {/* 'Todas' = default cuando ni chips ni sin-coleccion estan activas */}
         <button
           type="button"

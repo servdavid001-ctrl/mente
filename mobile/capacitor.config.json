@@ -1,0 +1,12 @@
+{
+  "appId": "app.mente.twa",
+  "appName": "Mente",
+  "webDir": "www",
+  "server": {
+    "url": "https://mente-ten-iota.vercel.app",
+    "cleartext": false
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

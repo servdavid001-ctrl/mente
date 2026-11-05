@@ -18,7 +18,7 @@ export default function ProyectoCard(props: {
   const accion = proyecto.plegado ? 'Desplegar' : 'Plegar';
 
   return (
-    <div className="flex items-center gap-2 rounded-card border border-border bg-surface p-3">
+    <div className="hover-card flex items-center gap-2 rounded-card border border-border bg-surface p-3 md:min-h-[72px] md:p-4">
       <span
         aria-hidden="true"
         className="h-3 w-3 shrink-0 rounded-full"

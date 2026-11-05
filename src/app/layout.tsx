@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import PreferenciasInit from '@/components/PreferenciasInit';
 import ServiceWorkerRegister from '@/components/ServiceWorkerRegister';
 import './globals.css';
 
@@ -13,12 +14,18 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#F5F1E8',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F5F1E8' },
+    { media: '(prefers-color-scheme: dark)', color: '#1C1A17' },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        <PreferenciasInit />
+      </head>
       <body>
         {children}
         <ServiceWorkerRegister />

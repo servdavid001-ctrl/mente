@@ -9,5 +9,5 @@ export default async function PaginaFoco() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) redirect('/login');
-  return <Foco />;
+  return <Foco email={data.user.email ?? undefined} />;
 }

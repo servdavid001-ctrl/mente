@@ -8,7 +8,7 @@ export default function ExplicarFAB(props: { onClick: () => void; ariaLabel: str
       type="button"
       onClick={props.onClick}
       aria-label={props.ariaLabel}
-      className="fixed bottom-28 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-white shadow-pop"
+      className="fixed bottom-28 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-accent text-white shadow-pop lg:hidden"
     >
       <span aria-hidden="true" className="text-xl">✦</span>
     </button>

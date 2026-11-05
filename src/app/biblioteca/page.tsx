@@ -9,5 +9,5 @@ export default async function PaginaBiblioteca() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) redirect('/login');
-  return <Biblioteca />;
+  return <Biblioteca email={data.user.email ?? undefined} />;
 }

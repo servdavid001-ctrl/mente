@@ -21,7 +21,7 @@ const AVISOS_COMPARTIR: Record<string, string> = {
   error: 'No se pudo guardar. Reintenta.'
 };
 
-export default function Bandeja({ avisoCompartir }: { avisoCompartir?: string }) {
+export default function Bandeja({ avisoCompartir, email }: { avisoCompartir?: string; email?: string }) {
   const ops = useRef<Map<string, Promise<boolean>>>(new Map());
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [archivadas, setArchivadas] = useState<Idea[]>([]);
@@ -271,8 +271,30 @@ export default function Bandeja({ avisoCompartir }: { avisoCompartir?: string })
   );
 
   return (
-    <AppShell activeTab="bandeja" captureBar={barraCaptura}>
-      <div className="space-y-2">
+    <AppShell
+      activeTab="bandeja"
+      titulo="Bandeja"
+      email={email}
+      captureBar={barraCaptura}
+      headerActions={
+        !error && !cargando ? (
+          <div className="flex items-center gap-3">
+            <span className="text-[13px] text-text-soft">
+              {ideas.length} {ideas.length === 1 ? 'idea' : 'ideas'}
+            </span>
+            <button
+              type="button"
+              aria-expanded={verArchivadas}
+              onClick={() => setVerArchivadas((v) => !v)}
+              className="h-11 rounded-blob px-2 text-[13px] text-text-soft hover:text-text"
+            >
+              {verArchivadas ? 'Ocultar archivadas' : `Ver archivadas (${archivadas.length})`}
+            </button>
+          </div>
+        ) : null
+      }
+    >
+      <div className="mx-auto w-full max-w-[46rem] space-y-2">
         {aviso ? (
           <p role="status" className="rounded-card bg-accent-soft px-4 py-2.5 text-[13px] text-text">
             {aviso}
@@ -303,7 +325,7 @@ export default function Bandeja({ avisoCompartir }: { avisoCompartir?: string })
           </div>
         ) : null}
         {!error && !cargando ? (
-          <div className="flex justify-end">
+          <div className="flex justify-end md:hidden">
             <button
               type="button"
               aria-expanded={verArchivadas}

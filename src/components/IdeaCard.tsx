@@ -52,7 +52,7 @@ export default function IdeaCard(props: {
 
   return (
     <article
-      className={`rounded-card bg-surface p-4 shadow-card ${props.nueva ? 'anim-fade-rise' : ''} ${
+      className={`hover-card rounded-card bg-surface p-4 shadow-card md:p-5 ${props.nueva ? 'anim-fade-rise' : ''} ${
         props.idea.archivada ? 'opacity-55' : ''
       }`}
     >

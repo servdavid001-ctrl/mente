@@ -29,14 +29,14 @@ export default function LibCard(props: {
   return (
     <Link
       href={`/biblioteca/${props.idea.id}`}
-      className={`block overflow-hidden rounded-card bg-surface shadow-card ${
+      className={`hover-card block min-w-0 overflow-hidden rounded-card bg-surface shadow-card ${
         props.archivoVisible ? 'opacity-55' : ''
       }`}
       aria-label={titulo}
     >
       {esVoz ? <Frontal icono="▶" /> : conImagen ? <Cubierta ruta={props.idea.mediaUrl ?? ''} /> : <Frontal icono="☰" />}
 
-      <div className="space-y-1 p-3">
+      <div className="space-y-1 p-3 md:p-4">
         <p className="truncate text-[14px] font-semibold text-text">{titulo}</p>
         <p aria-hidden="true" className="text-[12px] text-text-soft">
           {ETIQUETAS_TIPO[props.idea.kind]} · {relativeTime(props.idea.createdAt)}

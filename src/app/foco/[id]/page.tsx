@@ -10,5 +10,5 @@ export default async function PaginaProyecto(props: { params: Promise<{ id: stri
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) redirect('/login');
-  return <ProyectoDetalle proyectoId={id} />;
+  return <ProyectoDetalle proyectoId={id} email={data.user.email ?? undefined} />;
 }

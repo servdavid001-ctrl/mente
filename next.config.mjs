@@ -24,6 +24,14 @@ const nextConfig = {
   async headers() {
     return [
       {
+        // el ZIP de la extension se sirve como descarga real
+        source: '/downloads/mente-extension.zip',
+        headers: [
+          { key: 'Content-Type', value: 'application/zip' },
+          { key: 'Content-Disposition', value: 'attachment; filename="mente-extension.zip"' },
+        ],
+      },
+      {
         source: '/:path*',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },

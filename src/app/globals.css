@@ -3,6 +3,7 @@
 @import 'tailwindcss/utilities';
 
 :root {
+  color-scheme: light;
   --bg: #F5F1E8;
   --surface: #FDFBF6;
   --surface-raised: #FFFFFF;
@@ -10,8 +11,16 @@
   --text-soft: #6B665C;
   --accent: #E86A33;
   --accent-soft: #FBEEE6;
+  --accent-strong: #C6541F;
+  --accent-hover: #B84A1B;
+  --accent-ink: #B84A1B;
+  --on-accent: #FFFFFF;
   --danger: #B3573F;
+  --danger-hover: #9E4632;
+  --on-danger: #FFFFFF;
   --border: #E4DECF;
+  --border-control: #9A9180;
+  --focus: #B84A1B;
   --shadow-card: 0 1px 2px rgba(43, 40, 34, 0.04), 0 4px 12px rgba(43, 40, 34, 0.05);
   --shadow-pop: 0 8px 24px rgba(43, 40, 34, 0.10);
   /* modulo 2: dots de colecciones (paleta cerrada, spec §1) */
@@ -27,14 +36,66 @@
   --success: #3F7A52;
 }
 
+/* tema oscuro: contraste AA, nunca negro puro, un solo acento */
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #1C1A17;
+  --surface: #24211D;
+  --surface-raised: #2C2823;
+  --text: #F2EDE3;
+  --text-soft: #B3AB9D;
+  --accent: #F0844F;
+  --accent-soft: #3A2A22;
+  --accent-strong: #F0844F;
+  --accent-hover: #E5773F;
+  --accent-ink: #F5A277;
+  --on-accent: #1C1A17;
+  --danger: #E08570;
+  --danger-hover: #EC9480;
+  --on-danger: #1C1A17;
+  --border: #3A352E;
+  --border-control: #7C7468;
+  --focus: #F0844F;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 4px 14px rgba(0, 0, 0, 0.35);
+  --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.55);
+  --success: #7FB08F;
+}
+
 body {
   background-color: var(--bg);
   color: var(--text);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
+}
+
+/* shell: el padding inferior del main cambia si hay dock de captura */
+.app-main {
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+}
+.app-main[data-captura='true'] {
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
+@media (min-width: 768px) {
+  .app-main,
+  .app-main[data-captura='true'] {
+    padding-bottom: 2rem;
+  }
+}
+
+/* hover solo en punteros finos: en tactil no se quedan estados pegados */
+@media (hover: hover) and (pointer: fine) {
+  .nav-hover:hover {
+    background-color: var(--surface-raised);
+  }
+  .hover-card {
+    transition: box-shadow 150ms ease-out;
+  }
+  .hover-card:hover {
+    box-shadow: var(--shadow-pop);
+  }
 }
 
 .anim-fade-rise { animation: fade-rise 200ms ease-out both; }
@@ -83,6 +144,7 @@ body {
   .anim-fade-rise, .anim-pulse-soft, .anim-shimmer, .anim-wave { animation: none; }
   .anim-shake { animation: none; }
   .anim-dot-seq span { animation: none; opacity: 0.6; }
+  .hover-card { transition: none; }
 }
 
 /* dot fantasma de la sugerencia nueva (anillo punteado, sin color nuevo) */

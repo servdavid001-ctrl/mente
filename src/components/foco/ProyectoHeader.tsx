@@ -8,15 +8,15 @@ export default function ProyectoHeader(props: {
 }) {
   const { proyecto } = props;
   return (
-    <div className="flex items-center gap-3 rounded-card border border-border bg-surface p-3">
+    <div className="flex items-center gap-3 rounded-card border border-border bg-surface p-3 md:p-4">
       <span
         aria-hidden="true"
-        className="h-3 w-3 shrink-0 rounded-full"
+        className="h-3 w-3 shrink-0 rounded-full md:h-3.5 md:w-3.5"
         style={{ backgroundColor: proyecto.color }}
       />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[16px] font-semibold">{proyecto.nombre}</p>
-        <p className="text-[12px] text-text-soft">
+        <p className="truncate font-display text-[20px] font-semibold md:text-[24px] lg:text-[28px]">{proyecto.nombre}</p>
+        <p className="text-[12px] text-text-soft md:text-[13px]">
           {props.ideasCount} {props.ideasCount === 1 ? 'idea' : 'ideas'} ·{' '}
           {proyecto.objetivosActivos}{' '}
           {proyecto.objetivosActivos === 1 ? 'objetivo activo' : 'objetivos activos'}

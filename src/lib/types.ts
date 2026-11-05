@@ -1,4 +1,4 @@
-export type TabId = 'foco' | 'bandeja' | 'biblioteca';
+export type TabId = 'foco' | 'bandeja' | 'biblioteca' | 'ajustes';
 
 export type IdeaKind = 'texto' | 'voz' | 'link' | 'arte';
 

@@ -32,8 +32,14 @@ export default function BibliotecaGrid(props: {
   const visibles = filtrar(props);
 
   return (
-    <div className="space-y-2">
-      {soloBusqueda(props)}
+    <div className="space-y-3">
+      <div className="space-y-2 md:flex md:items-center md:gap-2 md:space-y-0 lg:gap-3">
+        <div className="md:w-[13rem] md:shrink-0 lg:w-[18rem]">{soloBusqueda(props)}</div>
+        <div className="md:w-[15rem] md:shrink-0 lg:w-[20rem]">
+          <TypeFilterSegment value={props.tipo} onChange={props.onTipo} />
+        </div>
+        <div className="md:ml-auto md:hidden">{botonArchivadas(props)}</div>
+      </div>
       <ColeccionChips
         colecciones={props.colecciones}
         activas={props.coleccionesActivas}
@@ -41,8 +47,6 @@ export default function BibliotecaGrid(props: {
         sinColeccionActiva={props.sinColeccionActiva}
         onToggleSinColeccion={props.onToggleSinColeccion}
       />
-      <TypeFilterSegment value={props.tipo} onChange={props.onTipo} />
-      {botonArchivadas(props)}
 
       {cuerpo(props, visibles, totalActivos)}
     </div>
@@ -104,7 +108,7 @@ function cuerpo(
   if (props.isLoading) return <EsqueletosGrid />;
   if (visibles.length > 0) {
     return (
-      <div aria-live="polite" className="grid grid-cols-2 gap-2">
+      <div aria-live="polite" className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-3 xl:grid-cols-4 xl:gap-4">
         {visibles.map((idea) => (
           <LibCard key={idea.id} idea={idea} colecciones={props.colecciones} archivoVisible={props.verArchivadas} />
         ))}

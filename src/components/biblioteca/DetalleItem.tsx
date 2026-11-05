@@ -26,7 +26,7 @@ const ERROR_MEDIA = 'No se pudo subir la imagen. Reintenta.';
 
 /** pagina Detalle /biblioteca/[id] (spec §4): hero, nota, metadatos,
  * ConexionesPanel + picker, acciones con UNDO 6s y ajuste de colecciones */
-export default function DetalleItem(props: { ideaId: string }) {
+export default function DetalleItem(props: { ideaId: string; email?: string }) {
   const router = useRouter();
   const ops = useRef<Map<string, Promise<boolean>>>(new Map());
   // la pagina vive sobre un solo item: lo guardo como lista de 1 para reutilizar
@@ -381,6 +381,7 @@ export default function DetalleItem(props: { ideaId: string }) {
     <AppShell
       activeTab="biblioteca"
       titulo="Detalle"
+      email={props.email}
       headerLeft={
         <button
           type="button"
@@ -392,6 +393,7 @@ export default function DetalleItem(props: { ideaId: string }) {
         </button>
       }
     >
+      <div className="mx-auto w-full max-w-[64rem]">
       {toast ? (
         <p role="alert" className="mb-3 rounded-card bg-danger px-4 py-2.5 text-sm text-white">
           {toast}
@@ -447,94 +449,109 @@ export default function DetalleItem(props: { ideaId: string }) {
         <div className="space-y-4">
           <HeroItem idea={idea} />
 
-          <section aria-label="Nota de la idea">
-            {editandoNota ? (
-              <>
-                <NotaEditor
-                  value={nota}
-                  onChange={setNota}
-                  onSave={salvarNota}
+          <div className="space-y-4 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8">
+            <div className="min-w-0 space-y-4">
+              <section aria-label="Nota de la idea">
+                {editandoNota ? (
+                  <>
+                    <NotaEditor
+                      value={nota}
+                      onChange={setNota}
+                      onSave={salvarNota}
+                    />
+                    <button
+                      type="button"
+                      aria-label="Mostrar la nota guardada"
+                      onClick={() => {
+                        void salvarNota();
+                        setEditandoNota(false);
+                      }}
+                      className="h-9 text-[12px] text-text-soft"
+                    >
+                      Ver nota
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <VisualNota nota={idea.nota} />
+                    <button
+                      type="button"
+                      aria-label="Editar la nota"
+                      onClick={() => setEditandoNota(true)}
+                      className="h-9 text-[12px] text-text-soft"
+                    >
+                      Editar nota
+                    </button>
+                  </>
+                )}
+              </section>
+
+              <ConexionesPanel
+                conexiones={conexiones}
+                items={itemsIndex(otros)}
+                itemIdActual={idea.id}
+                onRemove={(id) => void quitarConexion(id)}
+              />
+
+              <ExpansionItem
+                idea={idea}
+                conectadasYa={conectadasYa}
+                onNuevaConexion={(conexion) =>
+                  setConexiones((prev) =>
+                    prev.some((c) => c.id === conexion.id) ? prev : [...prev, conexion]
+                  )
+                }
+                onNotaAppend={(texto) => void anexarANota(texto)}
+              />
+            </div>
+
+            <aside className="min-w-0 space-y-4 lg:sticky lg:top-6">
+              <MetadatosItem
+                idea={idea}
+                colecciones={colecciones}
+                onAjustar={() => setSheetAbierto(true)}
+                onQuitarMedia={() => void quitarMedia()}
+                onSubirMedia={(f) => void subeMedia(f)}
+              />
+
+              <BotonCrearTareas idea={idea} />
+
+              {!pickerAbierto ? (
+                <button
+                  type="button"
+                  aria-label="Conectar con otra idea"
+                  onClick={() => setPickerAbierto(true)}
+                  className="h-11 w-full rounded-card border border-border text-[14px] font-semibold text-text"
+                >
+                  Conectar con...
+                </button>
+              ) : (
+                <ItemConnectPicker
+                  items={otros}
+                  itemIdActual={idea.id}
+                  conectadasYa={conectadasYa}
+                  colecciones={colecciones}
+                  onConnect={conectar}
+                  onCancel={() => setPickerAbierto(false)}
                 />
-                <button
-                  type="button"
-                  aria-label="Mostrar la nota guardada"
-                  onClick={() => {
-                    void salvarNota();
-                    setEditandoNota(false);
-                  }}
-                  className="h-9 text-[12px] text-text-soft"
-                >
-                  Ver nota
-                </button>
-              </>
-            ) : (
-              <>
-                <VisualNota nota={idea.nota} />
-                <button
-                  type="button"
-                  aria-label="Editar la nota"
-                  onClick={() => setEditandoNota(true)}
-                  className="h-9 text-[12px] text-text-soft"
-                >
-                  Editar nota
-                </button>
-              </>
-            )}
-          </section>
+              )}
 
-          <MetadatosItem
-            idea={idea}
-            colecciones={colecciones}
-            onAjustar={() => setSheetAbierto(true)}
-            onQuitarMedia={() => void quitarMedia()}
-            onSubirMedia={(f) => void subeMedia(f)}
-          />
+              <button
+                type="button"
+                onClick={() => abrirExplicar()}
+                className="hidden h-11 w-full items-center justify-center gap-2 rounded-card border border-border text-[14px] font-semibold text-text lg:flex"
+              >
+                <span aria-hidden="true">✦</span>
+                Explicar con AI
+              </button>
 
-          <ConexionesPanel
-            conexiones={conexiones}
-            items={itemsIndex(otros)}
-            itemIdActual={idea.id}
-            onRemove={(id) => void quitarConexion(id)}
-          />
-
-          <ExpansionItem
-            idea={idea}
-            conectadasYa={conectadasYa}
-            onNuevaConexion={(conexion) =>
-              setConexiones((prev) =>
-                prev.some((c) => c.id === conexion.id) ? prev : [...prev, conexion]
-              )
-            }
-            onNotaAppend={(texto) => void anexarANota(texto)}
-          />
-
-          <BotonCrearTareas idea={idea} />
-
-          {!pickerAbierto ? (
-            <button
-              type="button"
-              aria-label="Conectar con otra idea"
-              onClick={() => setPickerAbierto(true)}
-              className="h-11 w-full rounded-card border border-border text-[14px] font-semibold text-text"
-            >
-              Conectar con...
-            </button>
-          ) : (
-            <ItemConnectPicker
-              items={otros}
-              itemIdActual={idea.id}
-              conectadasYa={conectadasYa}
-              colecciones={colecciones}
-              onConnect={conectar}
-              onCancel={() => setPickerAbierto(false)}
-            />
-          )}
-
-          <AccionesDetalle
-            archivada={Boolean(idea.archivada)}
-            onArchivar={() => void archivar()}
-            onEliminar={() => void eliminar()}
-          />
+              <AccionesDetalle
+                archivada={Boolean(idea.archivada)}
+                onArchivar={() => void archivar()}
+                onEliminar={() => void eliminar()}
+              />
+            </aside>
+          </div>
         </div>
       ) : null}
 
@@ -581,6 +598,7 @@ export default function DetalleItem(props: { ideaId: string }) {
           onCerrar={() => setSheetAbierto(false)}
         />
       ) : null}
+      </div>
     </AppShell>
   );
 }

@@ -103,86 +103,90 @@ export default function CaptureBar(props: { onSend: (idea: IdeaPayload) => Promi
   return (
     <form
       aria-label="Capturar una idea"
-      className="shrink-0 border-t border-border bg-surface px-3 py-2"
+      className="shrink-0"
       onSubmit={(e) => {
         e.preventDefault();
         void enviar();
       }}
     >
-      {mic.grabando ? (
-        <div aria-live="polite" className="flex h-11 items-center gap-2 rounded-card bg-accent-soft px-3">
-          <span aria-hidden="true" className="flex items-end gap-0.5">
-            {[0, 150, 300].map((delay) => (
-              <span
-                key={delay}
-                className="anim-wave h-4 w-0.5 rounded-full bg-accent"
-                style={{ animationDelay: `${delay}ms` }}
+      <div className="md:flex md:items-center md:gap-2">
+        <div className="min-w-0 md:flex-1">
+          {mic.grabando ? (
+            <div aria-live="polite" className="flex h-11 items-center gap-2 rounded-card bg-accent-soft px-3">
+              <span aria-hidden="true" className="flex items-end gap-0.5">
+                {[0, 150, 300].map((delay) => (
+                  <span
+                    key={delay}
+                    className="anim-wave h-4 w-0.5 rounded-full bg-accent"
+                    style={{ animationDelay: `${delay}ms` }}
+                  />
+                ))}
+              </span>
+              <span aria-hidden="true" className="text-sm font-medium">
+                Escuchando...
+              </span>
+            </div>
+          ) : linkUrl ? (
+            <div className="flex h-11 items-center gap-2 rounded-card border border-border bg-raised px-3">
+              <img
+                src={`https://www.google.com/s2/favicons?sz=32&domain=${dominio(linkUrl)}`}
+                alt=""
+                aria-hidden="true"
+                width={16}
+                height={16}
+                onError={(e) => (e.currentTarget.style.display = 'none')}
               />
-            ))}
-          </span>
-          <span aria-hidden="true" className="text-sm font-medium">
-            Escuchando...
-          </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-[11px] text-text-soft">Link pegado</span>
+                <span aria-hidden="true" className="block truncate text-sm font-medium">
+                  {dominio(linkUrl)}
+                </span>
+              </span>
+              <button
+                type="button"
+                aria-label="Quitar el link"
+                onClick={() => setLinkUrl(null)}
+                className="flex h-11 w-11 items-center justify-center text-text-soft"
+              >
+                <span aria-hidden="true">✕</span>
+              </button>
+            </div>
+          ) : (
+            <input
+              type="text"
+              value={texto}
+              onChange={(e) => setTexto(e.target.value)}
+              onPaste={alPegar}
+              onKeyDown={onKeyDown}
+              maxLength={20000}
+              placeholder="Escribe tu idea..."
+              aria-label="Escribe tu idea"
+              className="h-11 w-full rounded-card border border-border bg-raised px-3 text-[15px] text-text placeholder:text-text-soft"
+            />
+          )}
         </div>
-      ) : linkUrl ? (
-        <div className="flex h-11 items-center gap-2 rounded-card border border-border bg-raised px-3">
-          <img
-            src={`https://www.google.com/s2/favicons?sz=32&domain=${dominio(linkUrl)}`}
-            alt=""
-            aria-hidden="true"
-            width={16}
-            height={16}
-            onError={(e) => (e.currentTarget.style.display = 'none')}
+
+        <div className="mt-1 flex items-center gap-1 md:mt-0 md:shrink-0">
+          {hayTexto || linkUrl ? null : (
+            <>
+              <MicBoton grabando={mic.grabando} ocupado={enviando} onTap={micTap} />
+              <LinkBoton texto={texto} onTap={tomarLink} />
+            </>
+          )}
+          <SendBoton
+            activo={puedeEnviar}
+            ocupado={enviando || subiendoVoz}
+            grabando={mic.grabando}
+            onTap={() => void enviar()}
           />
-          <span className="min-w-0 flex-1">
-            <span className="block text-[11px] text-text-soft">Link pegado</span>
-            <span aria-hidden="true" className="block truncate text-sm font-medium">
-              {dominio(linkUrl)}
-            </span>
-          </span>
-          <button
-            type="button"
-            aria-label="Quitar el link"
-            onClick={() => setLinkUrl(null)}
-            className="flex h-11 w-11 items-center justify-center text-text-soft"
-          >
-            <span aria-hidden="true">✕</span>
-          </button>
         </div>
-      ) : (
-        <input
-          type="text"
-          value={texto}
-          onChange={(e) => setTexto(e.target.value)}
-          onPaste={alPegar}
-          onKeyDown={onKeyDown}
-          maxLength={20000}
-          placeholder="Escribe tu idea..."
-          aria-label="Escribe tu idea"
-          className="h-11 w-full rounded-card border border-border bg-raised px-3 text-[15px] text-text placeholder:text-text-soft"
-        />
-      )}
+      </div>
 
       {mic.error ? (
         <p role="alert" className="mt-1 px-1 text-xs text-danger">
           {mic.error === ERROR_MIC ? ERROR_MIC : mic.error}
         </p>
       ) : null}
-
-      <div className="mt-1 flex items-center gap-1">
-        {hayTexto || linkUrl ? null : (
-          <>
-            <MicBoton grabando={mic.grabando} ocupado={enviando} onTap={micTap} />
-            <LinkBoton texto={texto} onTap={tomarLink} />
-          </>
-        )}
-        <SendBoton
-          activo={puedeEnviar}
-          ocupado={enviando || subiendoVoz}
-          grabando={mic.grabando}
-          onTap={() => void enviar()}
-        />
-      </div>
     </form>
   );
 }
@@ -213,7 +217,7 @@ function LinkBoton(props: { texto: string; onTap: () => void }) {
   return (
     <button
       type="button"
-      aria-label="Botón para pegar un link"
+      aria-label="Boton para pegar un link"
       onClick={props.onTap}
       className={`flex h-11 w-11 items-center justify-center ${activo ? 'text-accent' : 'text-text-soft'}`}
     >

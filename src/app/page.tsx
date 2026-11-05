@@ -14,5 +14,5 @@ export default async function Home({
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) redirect('/login');
   const { compartir } = await searchParams;
-  return <Bandeja avisoCompartir={compartir} />;
+  return <Bandeja avisoCompartir={compartir} email={data.user.email ?? undefined} />;
 }
