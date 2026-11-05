@@ -1,61 +1,62 @@
 # PROJECT_STATE — Mente (provisional)
-Última actualización: 2026-11-04
+Última actualización: 2026-11-05
 
 ## Estado actual
-Módulos 1-3 completados y **desplegados en producción** (2026-11-04) sobre Next 16.4.5 + Supabase `vgtbznppcthyitnzgmlt`. Security audit: APROBADO. Build verde, 0 vulnerabilidades npm.
-Siguiente módulo: 4. Proyectos, Objetivos y Panel de Foco.
+**v1 completa: módulos 1-7 implementados y desplegados en producción.** Build verde, 0 vulnerabilidades npm, security audit APROBADO, QA en vivo de módulos 1-7 sin errores de página.
+Siguiente: backlog v2 del FOUNDATION (no v1).
 
 ## Producción
 - URL: https://mente-ten-iota.vercel.app
-- Vercel: proyecto `mente` (team servdavid001-2819s-projects), SSO protection reactivada.
-- Supabase: `vgtbznppcthyitnzgmlt` (us-east-1). Migraciones 0001-0005 aplicadas y registradas.
+- Vercel: proyecto `mente`, SSO protection activa (prod accesible, previews protegidas).
+- Supabase: `vgtbznppcthyitnzgmlt` (us-east-1), migraciones 0001-0008 aplicadas y registradas.
 - GitHub: `servdavid001-ctrl/mente`, rama `main`.
 
 ## Módulos completados
-| Módulo | Rutas | Estado |
-|---|---|---|
-| 1. Fundamento | /, /login, /api/ideas[/id] | ✓ |
-| 2. Biblioteca creativa | /biblioteca[/id], /api/colecciones[/id], /api/conexiones | ✓ |
-| 3. AI organizadora | /api/ai/analizar/[id], /api/ai/sugerencias[/id], /api/ai/explicar | ✓ (requiere AI key) |
-| Navegación | /foco + BottomNav con Link real | ✓ (fix P0 #8) |
+| # | Módulo | Rutas principales | Estado |
+|---|---|---|---|
+| 1 | Fundamento (login, bandeja, captura, PWA) | /, /login, /api/ideas[/id] | ✓ |
+| 2 | Biblioteca creativa | /biblioteca[/id], /api/colecciones[/id], /api/conexiones | ✓ |
+| 3 | AI organizadora | /api/ai/analizar, /sugerencias, /explicar | ✓ código (requiere key) |
+| 4 | Foco: proyectos, objetivos, guardián, copiloto | /foco[/id], /api/proyectos[/id], /api/objetivos[/id] | ✓ |
+| 5 | Extensión Chrome + tokens de captura | extension/, /api/captura[/token] | ✓ |
+| 6 | Share-target móvil + service worker | /compartir (POST), public/sw.js | ✓ |
+| 7 | Tareas (idea/plan→tareas, Hoy) | /api/tareas[/id], /api/ideas/[id]/tareas | ✓ |
 
 ## Deuda abierta
-- **AI no operativa en prod**: faltan `OPENROUTER_API_KEY` u `OPENAI_API_KEY` en Vercel. La UI degrada con 503 claro.
-- Transcripcion solo con key OpenAI (OpenRouter cubre chat, no audio).
-- React 18 deprecado en Next 16 (subir a React 19 antes de Next 17).
-- `eslint-config-next` sigue en 14 y eslint 8; `npm run lint` funciona con `eslint .`.
-- CSP en Report-Only con `unsafe-eval`; cookies de sesión no HttpOnly; errores PostgREST crudos al cliente (deudas Medias del audit, no bloqueantes).
-- Minuta AI guardada en `ideas.entidades.ai_minuta` (base del módulo 7). Higiene asistida pendiente de limpiar audio huérfano.
-- Sin service worker custom (PWA mínima).
-- MCP Supabase global corregido a `vgtbznppcthyitnzgmlt`; requiere reiniciar la sesión de opencode.
-
-## Módulos pendientes (orden)
-1. Proyectos, Objetivos y Panel de Foco
-2. Extensión Chrome
-3. Share-target móvil
-4. Acciones/tareas
+- **AI no operativa en prod**: falta `OPENROUTER_API_KEY` u `OPENAI_API_KEY`. La UI degrada con 503 claro.
+- Rate limit en `/api/captura` y `/compartir` (solo AI lo tiene).
+- Magic bytes de imágenes (hoy solo MIME declarado).
+- Triggers de pertenencia cross-tenant en FKs de proyectos/objetivos/tareas (la API ya valida).
+- Errores PostgREST crudos al cliente en algunas rutas.
+- CSP Report-Only con `unsafe-eval`; cookies de sesión no HttpOnly.
+- React 18 deprecado en Next 16 (subir a 19 antes de Next 17); `eslint-config-next` 14.
+- Capturas >4.5 MB fallan por body limit de Vercel.
+- Sin service worker de caché offline (solo passthrough para share-target).
+- Sin framework de tests configurado (gate = build + tsc + lint + QA en vivo).
+- MCP Supabase global corregido a `vgtbznppcthyitnzgmlt`; requiere reiniciar opencode.
 
 ## Bugs abiertos AHORA
 (ninguno)
-- 2026-11-04 RESUELTO: P0 #8 BottomNav no navegaba. Fix: `BottomNav` con `next/link`, `AppShell` sin estado local, ruta `/foco`. Verificado en producción.
 
 ## Últimas decisiones
-- 2026-11-04: Proyecto Supabase correcto = `vgtbznppcthyitnzgmlt`; el anterior del MCP (`emquosormmqyfoxtqtea`) estaba borrado.
-- 2026-11-04: Upgrade Next 14.2.35 → 16.4.5 por advisories críticos (C1). `middleware.ts` → `proxy.ts`; cookies/params async.
-- 2026-11-04: Registro cerrado (`disable_signup=true`, password mínimo 12) y botón de signup eliminado (contrato single-user).
-- 2026-11-04: Rate limit AI atómico por RPC `consumir_analisis` (50/día, cuenta intentos); SSRF con DNS fijado (undici); validación UUID en conexiones; migración 0005.
-- 2026-11-01: Estructura de 3 apartados (Foco / Bandeja / Biblioteca). Proyectos plegables por decisión del usuario, nunca bloqueados.
+- 2026-11-05: Módulos 4-7 construidos sin IA: copiloto por líneas, captura por token de dispositivo, share-target solo POST (GET eliminado por CSRF), tareas extraídas de minuta/líneas.
+- 2026-11-05: `/compartir` exento del proxy pero con auth propia; mutación solo por POST.
+- 2026-11-04: Next 16.4.5, registro cerrado, rate limit AI atómico, SSRF con DNS fijado, migración 0005.
+- 2026-11-01: 3 apartados (Foco/Bandeja/Biblioteca); proyectos plegables por decisión del usuario.
 
 ## Alertas activas
-- **Falta AI key** para activar módulo 3 en producción (David).
-- Rotar el token `sbp_...` de la config global de opencode (quedó visible en logs de sesión).
-- Referencias de diseño: albo.inc + notion.com (REA, 2026-11-01).
+- **Falta AI key** para activar módulo 3 (David).
+- Rotar token `sbp_...` de la config global de opencode (visible en logs de sesión).
+- Probar la extensión y el share-target en un dispositivo real (requiere instalar PWA y pegar token).
 
 ---
-## QA REPORT — 2026-11-04 (producción)
-URL: https://mente-ten-iota.vercel.app | Playwright headless + sesión real
-- Login 307→/login y signIn 200: PASS
-- Captura texto (POST /api/ideas 201 + item visible): PASS
-- Navegación Bandeja → Biblioteca → Bandeja → Foco con URL real: PASS
-- 0 pageerrors, 0 excepciones; vitals previos FCP/LCP 452ms, CLS 0.
-- Preview QA previo: 18 flujos OK, 0 P1; P2 de copy AI corregido (estado `indisponible`).
+## QA REPORT — 2026-11-05 (producción, módulos 4-7)
+URL: https://mente-ten-iota.vercel.app | Playwright + sesión real
+- Crear proyecto y abrir detalle: PASS
+- Objetivo con plan (3 pasos) → "3 tareas creadas": PASS
+- Crear tarea manual y verla en "Hoy": PASS
+- Generar token de extensión y capturar texto por API: 201 PASS
+- Revocar token: PASS
+- Share-target POST → idea en bandeja: PASS
+- Errores de página: 0
+- Datos de prueba eliminados (15 ideas, 0 proyectos/objetivos/tareas/tokens).

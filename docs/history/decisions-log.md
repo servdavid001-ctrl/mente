@@ -27,3 +27,10 @@
 - Integridad/entrada: validación UUID en conexiones, trigger `validar_conexion_propia`, cotas de URL/audio en ideas, color hex en colecciones, límites MIME/size de buckets y policy DELETE de audio.
 - Migración `0005_seguridad.sql` creada, aplicada y registrada.
 - Deuda aceptada (no bloqueante): CSP Report-Only con unsafe-eval, cookies no HttpOnly, errores PostgREST crudos, React 18 deprecado, `eslint-config-next` 14.
+
+## 2026-11-05 - Modulos 4-7 (v1 completa)
+- Modulo 4: `proyectos` + `objetivos` + `ideas.proyecto_id`; plegado persistente; guardian >3 desplegados o >14 dias sin ideas; copiloto guarda el plan como lineas en `objetivos.descripcion`.
+- Modulo 5: captura por token de dispositivo (`device_tokens`, SHA-256; plano solo una vez). `/api/captura` con service role para subir screenshots; extension MV3 en `extension/`. Se revoco SELECT de `token_hash` a authenticated.
+- Modulo 6: `share_target` POST multipart + service worker passthrough; `/compartir` exento del proxy pero con auth propia. GET eliminado por CSRF (mutacion solo POST).
+- Modulo 7: `tareas` + vista Hoy + conversion idea/plan→tareas (minuta o lineas). Extraccion sin IA.
+- Deuda aceptada: rate limits de captura/share, magic bytes, triggers de pertenencia, CSP/cookies, React 18, eslint 14.
