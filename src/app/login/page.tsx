@@ -1,8 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/browser';
+import { CampoAuth, SpinAuth } from '@/components/auth/CampoAuth';
 
 const ERR_PASSWORD = 'Contraseña incorrecta';
 const ERR_GENERIC = 'No pudimos entrar. Revisa tus datos.';
@@ -53,11 +55,11 @@ export default function LoginPage() {
         className="mt-8 space-y-4"
         onSubmit={(e) => { e.preventDefault(); void submit(); }}
       >
-        <SesionCampo
+        <CampoAuth
           label="Correo" type="email" value={email} shake={shake}
           onChange={setEmail}
         />
-        <SesionCampo
+        <CampoAuth
           label="Contraseña" type="password" value={password} shake={shake}
           onChange={setPassword}
         />
@@ -70,38 +72,17 @@ export default function LoginPage() {
           aria-label="Entrar"
           className="h-12 w-full rounded-card bg-accent text-[15px] font-semibold text-white disabled:opacity-60"
         >
-          {loading ? <SpinGrande /> : 'Entrar'}
+          {loading ? <SpinAuth /> : 'Entrar'}
         </button>
       </form>
+
+      <Link
+        href="/registro"
+        className="mt-4 text-center text-sm text-text-soft underline-offset-4 hover:underline"
+      >
+        Crear cuenta nueva
+      </Link>
     </main>
   );
 }
 
-function SesionCampo(props: {
-  label: string; type: string; value: string; shake: boolean;
-  onChange: (v: string) => void;
-}) {
-  const id = props.label.toLowerCase();
-  return (
-    <label className={props.shake ? 'block anim-shake' : 'block'}>
-      <span className="text-sm text-text-soft">{props.label}</span>
-      <input
-        id={id}
-        type={props.type}
-        required
-        value={props.value}
-        onChange={(e) => props.onChange(e.target.value)}
-        className="mt-1 h-12 w-full rounded-card border border-border bg-surface px-4 text-text"
-      />
-    </label>
-  );
-}
-
-function SpinGrande() {
-  return (
-    <span
-      aria-hidden="true"
-      className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white"
-    />
-  );
-}
