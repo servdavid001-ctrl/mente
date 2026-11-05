@@ -1,6 +1,7 @@
 import { createClient } from '@/utils/supabase/server';
 import { mapIdeaRow, SELECT_IDEA } from '@/lib/ideas';
 import { MAX_TEXTO } from '@/lib/biblioteca';
+import { esUuid } from '@/lib/foco';
 import type { Idea } from '@/lib/types';
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
@@ -37,6 +38,36 @@ export async function aplicarCambio(
     const { data, error } = await supabase
       .from('ideas')
       .update({ estado: 'bandeja', coleccion_ids: [] })
+      .eq('id', id)
+      .select(SELECT_IDEA)
+      .single();
+    if (error) throw error;
+    return { idea: mapIdeaRow(data) };
+  }
+  // modulo 4: mover una idea a un proyecto y/o cambiar su estado de proyecto
+  if ('proyectoId' in body || 'estado' in body) {
+    const cambios: Record<string, unknown> = {};
+    if ('proyectoId' in body) {
+      if (body.proyectoId !== null && !esUuid(body.proyectoId)) return 'invalido';
+      if (body.proyectoId !== null) {
+        const { data: proyecto, error } = await supabase
+          .from('proyectos')
+          .select('id')
+          .eq('id', body.proyectoId)
+          .maybeSingle();
+        if (error) throw error;
+        if (!proyecto) return { error: 'Proyecto invalido', status: 400 };
+      }
+      cambios.proyecto_id = body.proyectoId;
+    }
+    if ('estado' in body) {
+      if (body.estado !== 'proyecto' && body.estado !== 'investigacion') return 'invalido';
+      cambios.estado = body.estado;
+    }
+    if (Object.keys(cambios).length === 0) return 'invalido';
+    const { data, error } = await supabase
+      .from('ideas')
+      .update(cambios)
       .eq('id', id)
       .select(SELECT_IDEA)
       .single();

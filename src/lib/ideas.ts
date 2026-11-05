@@ -15,7 +15,8 @@ export function mapIdeaRow(row: AnyRow): Idea {
     mediaUrl: row.media_url ?? null,
     nota: row.nota ?? null,
     transcripcion: row.transcripcion ?? null,
-    entidades: row.entidades ?? null
+    entidades: row.entidades ?? null,
+    proyectoId: row.proyecto_id ?? null
   };
 }
 
@@ -51,7 +52,7 @@ export function ideaToPayload(idea: Idea) {
 }
 
 const SELECT =
-  'id,tipo,contenido,fuente,audio_url,estado,archivada,coleccion_ids,media_url,nota,transcripcion,entidades,created_at';
+  'id,tipo,contenido,fuente,audio_url,estado,archivada,coleccion_ids,media_url,nota,transcripcion,entidades,proyecto_id,created_at';
 
 export const SELECT_IDEA = SELECT;
 
@@ -68,5 +69,6 @@ type AnyRow = {
   nota?: string | null;
   transcripcion?: string | null;
   entidades?: Idea['entidades'];
+  proyecto_id?: string | null;
   created_at: unknown;
 };

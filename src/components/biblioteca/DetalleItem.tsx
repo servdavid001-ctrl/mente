@@ -11,6 +11,7 @@ import AccionesDetalle from './AccionesDetalle';
 import { HeroItem, VisualNota } from './HeroItem';
 import NotaEditor from './NotaEditor';
 import ExpansionItem from './ExpansionItem';
+import BotonCrearTareas from './BotonCrearTareas';
 import ExplicarFAB from '@/components/ai/ExplicarFAB';
 import ExplicarPanel, { type Turno } from '@/components/ai/ExplicarPanel';
 import UndoPrompt, { type Undo } from '@/components/UndoPrompt';
@@ -506,6 +507,8 @@ export default function DetalleItem(props: { ideaId: string }) {
             }
             onNotaAppend={(texto) => void anexarANota(texto)}
           />
+
+          <BotonCrearTareas idea={idea} />
 
           {!pickerAbierto ? (
             <button

@@ -26,10 +26,13 @@ export async function proxy(request: NextRequest) {
   // necesario para que el refresco de sesion escriba cookies nuevas
   const { data: { user } } = await supabase.auth.getUser();
 
-  // la API maneja su propio 401; el redirect HTML romperia los fetch JSON
+  // la API maneja su propio 401; el redirect HTML romperia los fetch JSON.
+  // /compartir es el share-target: su route handler decide el 303 a /login
+  // (necesario tambien para POST multipart con archivos).
   const esExenta =
     request.nextUrl.pathname.startsWith('/api') ||
-    request.nextUrl.pathname.startsWith('/login');
+    request.nextUrl.pathname.startsWith('/login') ||
+    request.nextUrl.pathname === '/compartir';
   if (!user && !esExenta) {
     return NextResponse.redirect(new URL('/login', request.url));
   }

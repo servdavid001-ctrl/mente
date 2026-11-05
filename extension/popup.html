@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mente — captura rapida</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="cabecera">
+      <h1>Mente</h1>
+      <p>Captura rapida</p>
+    </header>
+
+    <section class="config" aria-label="Configuracion">
+      <label for="appUrl">URL de Mente</label>
+      <input id="appUrl" type="url" inputmode="url" placeholder="https://mente-ten-iota.vercel.app" />
+
+      <label for="token">Token de captura</label>
+      <input id="token" type="password" autocomplete="off" placeholder="mente_..." />
+      <p class="pista">Genera el token en Mente / Foco / Extension de Chrome.</p>
+    </section>
+
+    <section class="pagina" aria-label="Pestana activa">
+      <p id="paginaTitulo" class="titulo-pagina">Cargando...</p>
+      <p id="paginaUrl" class="url-pagina"></p>
+    </section>
+
+    <label for="nota">Nota</label>
+    <textarea id="nota" rows="3" placeholder="Escribe una nota opcional"></textarea>
+
+    <div class="acciones">
+      <button id="btnTexto" type="button">Guardar texto</button>
+      <button id="btnLink" type="button">Guardar link</button>
+      <button id="btnSeleccion" type="button">Guardar seleccion</button>
+      <button id="btnCaptura" type="button">Capturar pantalla</button>
+    </div>
+
+    <p id="estado" class="estado" role="status" aria-live="polite"></p>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

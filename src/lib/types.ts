@@ -22,6 +22,8 @@ export type Idea = {
   // datos AI (modulo 3)
   transcripcion?: string | null;
   entidades?: EntidadesItem | null;
+  // modulo 4: proyecto al que pertenece la idea (null = sin proyecto)
+  proyectoId?: string | null;
 };
 
 // extendido con sourceUrl usado para voz: el CaptureBar sube el audio al bucket
@@ -116,4 +118,52 @@ export type ChipSugerenciaUI = {
   esNueva?: boolean;
   dotColor?: DotColor;
   coleccionId?: string;
+};
+
+/* extension modulo 4 (Foco): proyectos + objetivos */
+
+export type Proyecto = {
+  id: string;
+  nombre: string;
+  descripcion?: string | null;
+  color: string;
+  plegado: boolean;
+  orden: number;
+  createdAt: string;
+  updatedAt: string;
+  /** ideas no archivadas asignadas al proyecto */
+  ideasCount: number;
+  /** objetivos con estado 'activo' */
+  objetivosActivos: number;
+};
+
+export type ObjetivoEstado = 'activo' | 'logrado' | 'archivado';
+
+export type Objetivo = {
+  id: string;
+  proyectoId?: string | null;
+  titulo: string;
+  descripcion?: string | null;
+  estado: ObjetivoEstado;
+  fecha?: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/* extension modulo 7 (acciones/tareas): "guardado" se vuelve "hecho" */
+
+export type TareaEstado = 'pendiente' | 'hecha';
+
+export type Tarea = {
+  id: string;
+  proyectoId?: string | null;
+  objetivoId?: string | null;
+  ideaId?: string | null;
+  titulo: string;
+  nota?: string | null;
+  estado: TareaEstado;
+  fecha?: string | null;
+  orden: number;
+  createdAt: string;
+  updatedAt: string;
 };

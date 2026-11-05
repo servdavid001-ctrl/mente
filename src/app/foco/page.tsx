@@ -1,21 +1,13 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/utils/supabase/server';
-import AppShell from '@/components/AppShell';
-import EmptyState from '@/components/EmptyState';
+import Foco from '@/components/foco/Foco';
 
 export const dynamic = 'force-dynamic';
 
-/** pagina tab Foco: placeholder del modulo 4, misma regla de sesion */
+/** pagina tab Foco: proyectos, objetivos, guardian suave y copiloto */
 export default async function PaginaFoco() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getUser();
   if (error || !data.user) redirect('/login');
-  return (
-    <AppShell activeTab="foco">
-      <EmptyState
-        icon="target"
-        title="Tu Foco llega pronto. Aqui viviran tus proyectos."
-      />
-    </AppShell>
-  );
+  return <Foco />;
 }

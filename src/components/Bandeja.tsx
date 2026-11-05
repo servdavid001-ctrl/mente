@@ -15,7 +15,13 @@ const ERROR_CARGA = 'No se pudieron cargar tus ideas. Reintenta';
 const ERROR_ENVIO = 'No se pudo guardar. Tu idea sigue aqui, solo reintenta.';
 const ERROR_ACCION = 'No se pudo completar la accion. Reintenta.';
 
-export default function Bandeja() {
+const AVISOS_COMPARTIR: Record<string, string> = {
+  ok: 'Guardado en tu bandeja.',
+  vacio: 'No habia nada que guardar.',
+  error: 'No se pudo guardar. Reintenta.'
+};
+
+export default function Bandeja({ avisoCompartir }: { avisoCompartir?: string }) {
   const ops = useRef<Map<string, Promise<boolean>>>(new Map());
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [archivadas, setArchivadas] = useState<Idea[]>([]);
@@ -25,6 +31,9 @@ export default function Bandeja() {
   const [error, setError] = useState<string | undefined>();
   const [toast, setToast] = useState<string | null>(null);
   const [undo, setUndo] = useState<Undo | null>(null);
+  const [aviso, setAviso] = useState<string | null>(
+    () => (avisoCompartir ? AVISOS_COMPARTIR[avisoCompartir] ?? null : null)
+  );
   const [sheetId, setSheetId] = useState<string | null>(null);
   const [sheetOcupado, setSheetOcupado] = useState(false);
   // AI modulo 3: chips de sugerencia + pedir sugerencia + banner primer uso
@@ -85,6 +94,12 @@ export default function Bandeja() {
     const t = window.setTimeout(() => setToast(null), 4000);
     return () => window.clearTimeout(t);
   }, [toast]);
+
+  useEffect(() => {
+    if (!aviso) return;
+    const t = window.setTimeout(() => setAviso(null), 4000);
+    return () => window.clearTimeout(t);
+  }, [aviso]);
 
   async function enviarIdea(payload: IdeaPayload) {
     const temp = optimisticIdea(payload.kind, payload.text, payload.sourceUrl);
@@ -258,6 +273,11 @@ export default function Bandeja() {
   return (
     <AppShell activeTab="bandeja" captureBar={barraCaptura}>
       <div className="space-y-2">
+        {aviso ? (
+          <p role="status" className="rounded-card bg-accent-soft px-4 py-2.5 text-[13px] text-text">
+            {aviso}
+          </p>
+        ) : null}
         {bannerAI ? (
           <div
             role="status"
