@@ -6,6 +6,7 @@ import SheetDialog from '@/components/ui/SheetDialog';
 import ColeccionChip, { Dot } from './ColeccionChip';
 import ColeccionPickerInline from './ColeccionPickerInline';
 import SugerenciaSection from '@/components/ai/SugerenciaSection';
+import EnviarProyecto from './EnviarProyecto';
 
 export type GuardarCategorionPayload = {
   coleccionesIds: string[];
@@ -22,7 +23,8 @@ type NuevaPendiente = { nombre: string; color?: DotColor; activa: boolean };
  * Biblioteca, chips multi + inline nueva, Listo; en modo ajustar muestra
  * Quitar de Biblioteca con confirmacion inline. Extension modulo 3: con
  * sugerencia llega seleccionada (default deseleccionable) + banner con
- * descarte para siempre (irreversible).
+ * descarte para siempre (irreversible). Extension modulo 12: "A un proyecto"
+ * envia la idea a Notas/Investigacion de un proyecto via el PUT existente.
  */
 export default function CategorizarSheet(props: {
   ideaPreview: string;
@@ -33,6 +35,8 @@ export default function CategorizarSheet(props: {
   ocupado?: boolean;
   sugerencia?: SugerenciaSheet;
   onDescartarParaSiempre?: () => Promise<void>;
+  /** modulo 12: envio explicito a proyecto; sin el, la fila queda "viene pronto" */
+  enviarAProyecto?: (proyectoId: string, estado: 'proyecto' | 'investigacion') => Promise<boolean>;
   onSave: (payload: GuardarCategorionPayload) => Promise<void>;
   onQuitar?: () => Promise<void>;
   onCerrar: () => void;
@@ -49,7 +53,7 @@ export default function CategorizarSheet(props: {
   );
   const [baneada, setBaneada] = useState(false);
   const [descartando, setDescartando] = useState(false);
-  const [paso, setPaso] = useState<'form' | 'confirmaQuitar'>('form');
+  const [paso, setPaso] = useState<'form' | 'confirmaQuitar' | 'proyecto'>('form');
   const ocupado = props.ocupado === true;
 
   function toggle(id: string) {
@@ -68,6 +72,18 @@ export default function CategorizarSheet(props: {
       coleccionesIds: activas,
       nuevas: nuevas.filter((n) => n.activa).map(({ nombre, color }) => ({ nombre, color }))
     });
+  }
+
+  if (paso === 'proyecto' && props.enviarAProyecto) {
+    return (
+      <SheetDialog label="A un proyecto" onCerrar={props.onCerrar} ocupado={ocupado}>
+        <EnviarProyecto
+          ocupado={ocupado}
+          onEnviar={props.enviarAProyecto}
+          onVolver={() => setPaso('form')}
+        />
+      </SheetDialog>
+    );
   }
 
   if (paso === 'confirmaQuitar') {
@@ -136,13 +152,29 @@ export default function CategorizarSheet(props: {
             ✓
           </span>
         </div>
-        {/* gestionar expectativa: no es boton muerto, es row gris no-tocable */}
-        <div className="flex items-center justify-between rounded-card border border-border px-3 py-2.5 opacity-50">
-          <span className="text-[14px] font-medium text-text-soft">A un proyecto</span>
-          <span aria-hidden="true" className="text-[13px] text-text-soft">
-            viene pronto
-          </span>
-        </div>
+        {/* modulo 12: envio explicito a proyecto con el PUT existente; la fila
+            editable abre el paso de proyectos. Sin callback se ve como antes */}
+        {props.enviarAProyecto ? (
+          <button
+            type="button"
+            aria-label="Enviar a un proyecto"
+            disabled={ocupado}
+            onClick={() => setPaso('proyecto')}
+            className="flex w-full items-center justify-between rounded-card border border-border bg-surface px-3 py-2.5 disabled:opacity-60"
+          >
+            <span className="text-[14px] font-medium text-text">A un proyecto</span>
+            <span aria-hidden="true" className="text-[13px] text-text-soft">
+              →
+            </span>
+          </button>
+        ) : (
+          <div className="flex items-center justify-between rounded-card border border-border px-3 py-2.5 opacity-50">
+            <span className="text-[14px] font-medium text-text-soft">A un proyecto</span>
+            <span aria-hidden="true" className="text-[13px] text-text-soft">
+              viene pronto
+            </span>
+          </div>
+        )}
       </div>
 
       <div

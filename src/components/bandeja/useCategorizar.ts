@@ -86,6 +86,27 @@ export async function quitarDeBiblioteca(ideaId: string, h: Handlers): Promise<b
   return true;
 }
 
+/** modulo 12: envio explicito de la idea a un proyecto concreto via el PUT
+ * existente (ideaAcciones: { proyectoId, estado }). Devuelve false si fallo;
+ * nunca lanza. La idea deja de estar en Biblioteca cuando la accion es de un
+ * item categorizado (el estado pasa a 'proyecto'/'investigacion'). */
+export async function enviarAProyecto(
+  ideaId: string,
+  proyectoId: string,
+  estado: 'proyecto' | 'investigacion'
+): Promise<boolean> {
+  try {
+    const res = await fetch(`/api/ideas/${ideaId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proyectoId, estado })
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
 /** lee el body de error de la API si existe (patron { error: string }) */
 async function detalleError(res: Response): Promise<string | undefined> {
   try {

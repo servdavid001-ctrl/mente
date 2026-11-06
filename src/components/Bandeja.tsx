@@ -7,7 +7,11 @@ import CaptureBar from './CaptureBar';
 import InboxList from './InboxList';
 import UndoPrompt, { type Undo } from './UndoPrompt';
 import CategorizarSheet, { type SugerenciaSheet } from './biblioteca/CategorizarSheet';
-import { guardarCategorizacion, quitarDeBiblioteca } from './bandeja/useCategorizar';
+import {
+  guardarCategorizacion,
+  quitarDeBiblioteca,
+  enviarAProyecto as enviarAProyectoApi
+} from './bandeja/useCategorizar';
 import { ideaToPayload, optimisticIdea } from '@/lib/ideas';
 import type { ChipSugerenciaUI, Coleccion, Idea, IdeaPayload } from '@/lib/types';
 import { cambiarSugerencia, cargarSugerencias, pedirSugerencia, type EstadoPedido } from './ai/cliente';
@@ -430,6 +434,20 @@ export default function Bandeja({ avisoCompartir, email }: { avisoCompartir?: st
             const ok = await quitarDeBiblioteca(ideaSheet.id, h);
             setSheetOcupado(false);
             if (ok) setSheetId(null);
+          }}
+          enviarAProyecto={async (proyectoId, estado) => {
+            /* modulo 12: envio explicito de la Bandeja a un proyecto (Notas o
+                Investigacion) con el PUT existente; la idea sale de la lista */
+            setSheetOcupado(true);
+            const ok = await enviarAProyectoApi(ideaSheet.id, proyectoId, estado);
+            setSheetOcupado(false);
+            if (ok) {
+              setSheetId(null);
+              setIdeas((prev) => prev.filter((i) => i.id !== ideaSheet.id));
+              setArchivadas((prev) => prev.filter((i) => i.id !== ideaSheet.id));
+              setChips((prev) => prev.filter((c) => c.ideaId !== ideaSheet.id));
+            }
+            return ok;
           }}
           onCerrar={() => setSheetId(null)}
         />

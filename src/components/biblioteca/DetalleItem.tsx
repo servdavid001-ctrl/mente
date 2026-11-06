@@ -16,7 +16,7 @@ import BotonCrearTareas from './BotonCrearTareas';
 import ExplicarFAB from '@/components/ai/ExplicarFAB';
 import ExplicarPanel, { type Turno } from '@/components/ai/ExplicarPanel';
 import UndoPrompt, { type Undo } from '@/components/UndoPrompt';
-import { guardarCategorizacion, quitarDeBiblioteca } from '../bandeja/useCategorizar';
+import { guardarCategorizacion, quitarDeBiblioteca, enviarAProyecto as enviarAProyectoApi } from '../bandeja/useCategorizar';
 import { cargarDetalle, idsConectados, type Datos } from './detalle/cargarDetalle';
 import { ideaToPayload } from '@/lib/ideas';
 import type { Coleccion, Conexion, Idea } from '@/lib/types';
@@ -606,6 +606,15 @@ export default function DetalleItem(props: { ideaId: string; email?: string }) {
             const ok = await quitarDeBiblioteca(idea.id, h);
             setSheetOcupado(false);
             if (ok) router.push('/biblioteca');
+          }}
+          enviarAProyecto={async (proyectoId, estado) => {
+            /* modulo 12: salida explicita de Biblioteca a un proyecto (Notas
+               o Investigacion) con el PUT existente; la idea deja esta pagina */
+            setSheetOcupado(true);
+            const ok = await enviarAProyectoApi(idea.id, proyectoId, estado);
+            setSheetOcupado(false);
+            if (ok) router.push('/biblioteca');
+            return ok;
           }}
           onCerrar={() => setSheetAbierto(false)}
         />
