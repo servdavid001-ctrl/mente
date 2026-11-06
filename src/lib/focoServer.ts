@@ -2,8 +2,10 @@ import { mapIdeaRow, SELECT_IDEA } from '@/lib/ideas';
 import {
   mapObjetivoRow,
   mapProyectoRow,
+  contarTareas,
   type ObjetivoRow,
-  type ProyectoRow
+  type ProyectoRow,
+  type TareaConteoRow
 } from '@/lib/foco';
 import type { Idea, Objetivo, Proyecto } from '@/lib/types';
 import type { createClient } from '@/utils/supabase/server';
@@ -24,12 +26,16 @@ export async function leerJson(request: Request): Promise<unknown> {
   }
 }
 
-/** conteos que devuelve la API en cada proyecto (ideas no archivadas / activos) */
+/** conteos que devuelve la API en cada proyecto (ideas no archivadas / activos / tareas) */
 export async function contarDeProyecto(
   supabase: Supabase,
   id: string
-): Promise<{ ideas: number; objetivosActivos: number }> {
-  const [rIdeas, rObjetivos] = await Promise.all([
+): Promise<{
+  ideas: number;
+  objetivosActivos: number;
+  tareas: { hechas: number; total: number };
+}> {
+  const [rIdeas, rObjetivos, rTareas] = await Promise.all([
     supabase
       .from('ideas')
       .select('id', { count: 'exact', head: true })
@@ -39,11 +45,18 @@ export async function contarDeProyecto(
       .from('objetivos')
       .select('id', { count: 'exact', head: true })
       .eq('proyecto_id', id)
-      .eq('estado', 'activo')
+      .eq('estado', 'activo'),
+    supabase
+      .from('tareas')
+      .select('estado')
+      .eq('proyecto_id', id)
   ]);
   if (rIdeas.error) throw rIdeas.error;
   if (rObjetivos.error) throw rObjetivos.error;
-  return { ideas: rIdeas.count ?? 0, objetivosActivos: rObjetivos.count ?? 0 };
+  if (rTareas.error) throw rTareas.error;
+  const filas = (rTareas.data ?? []) as TareaConteoRow[];
+  const tareas = contarTareas(filas)[id] ?? { hechas: 0, total: 0 };
+  return { ideas: rIdeas.count ?? 0, objetivosActivos: rObjetivos.count ?? 0, tareas };
 }
 
 /** proyecto + objetivos + ideas (null = no existe o no es del usuario por RLS) */
@@ -59,7 +72,7 @@ export async function cargarProyectoConDetalle(
   if (error) throw error;
   if (!fila) return null;
 
-  const [rIdeas, rObjetivos] = await Promise.all([
+  const [rIdeas, rObjetivos, rTareas] = await Promise.all([
     supabase
       .from('ideas')
       .select(SELECT_IDEA)
@@ -70,16 +83,26 @@ export async function cargarProyectoConDetalle(
       .from('objetivos')
       .select(COLS_OBJETIVO)
       .eq('proyecto_id', id)
-      .order('created_at', { ascending: false })
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('tareas')
+      .select('estado')
+      .eq('proyecto_id', id)
   ]);
   if (rIdeas.error) throw rIdeas.error;
   if (rObjetivos.error) throw rObjetivos.error;
+  if (rTareas.error) throw rTareas.error;
 
   const ideas = (rIdeas.data ?? []).map((row) => mapIdeaRow(row));
   const objetivos = ((rObjetivos.data ?? []) as ObjetivoRow[]).map(mapObjetivoRow);
+  const tareas = contarTareas((rTareas.data ?? []) as TareaConteoRow[])[id] ?? {
+    hechas: 0,
+    total: 0
+  };
   const proyecto = mapProyectoRow(fila as ProyectoRow, {
     ideas: ideas.length,
-    objetivosActivos: objetivos.filter((o) => o.estado === 'activo').length
+    objetivosActivos: objetivos.filter((o) => o.estado === 'activo').length,
+    tareas
   });
 
   return { proyecto, objetivos, ideas };

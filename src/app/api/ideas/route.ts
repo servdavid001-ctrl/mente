@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { mapIdeaRow, SELECT_IDEA } from '@/lib/ideas';
 import { MAX_TEXTO } from '@/lib/biblioteca';
+import { esUuid } from '@/lib/foco';
 import type { Idea } from '@/lib/types';
 
 const MAX_URL = 2048;
@@ -52,9 +53,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Datos de la idea invalidos' }, { status: 400 });
     }
 
+    // modulo 11 (libreta dual): composer directo con destino proyecto/estado.
+    // el proyecto debe existir y ser del usuario; sin destino, comportamiento intacto
+    const destino = await validarDestino(supabase, body);
+    if (destino === null) {
+      return NextResponse.json({ error: 'Datos de la idea invalidos' }, { status: 400 });
+    }
+    const filaCompleta = { ...row, ...destino };
+
     const { data, error } = await supabase
       .from('ideas')
-      .insert(row)
+      .insert(filaCompleta)
       .select(SELECT_IDEA)
       .single();
 
@@ -101,4 +110,36 @@ function buildInsertRow(body: unknown, userId: string): Record<string, unknown> 
 
 function esHttp(url: string | null): boolean {
   return url !== null && url.length <= MAX_URL && /^https?:\/\/\S+$/i.test(url);
+}
+
+/** destino opcional del POST (libreta del proyecto, modulo 11):
+ * { destino: { proyecto_id }, estado: 'proyecto'|'investigacion' }.
+ * null = invalido; {} = sin destino (comportamiento por defecto intacto) */
+async function validarDestino(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  body: unknown
+): Promise<Record<string, unknown> | null> {
+  const bodyObj = body as { estado?: unknown; destino?: unknown } | null;
+  if (typeof bodyObj !== 'object' || bodyObj === null) return {};
+  if (bodyObj.estado === undefined && bodyObj.destino === undefined) return {};
+
+  const destino = bodyObj.destino as { proyecto_id?: unknown } | undefined;
+  if (destino !== undefined && (typeof destino !== 'object' || destino === null)) return null;
+  const proyectoId = destino?.proyecto_id;
+  if (proyectoId === undefined && bodyObj.estado !== undefined) return null; // estado sin proyecto
+  if (typeof proyectoId !== 'string' || !esUuid(proyectoId)) return null;
+
+  const { data: proyecto, error } = await supabase
+    .from('proyectos')
+    .select('id')
+    .eq('id', proyectoId)
+    .maybeSingle();
+  if (error) return null;
+  if (!proyecto) return null; // no existe o no es del usuario (RLS)
+
+  if (bodyObj.estado !== undefined && bodyObj.estado !== null) {
+    if (bodyObj.estado !== 'proyecto' && bodyObj.estado !== 'investigacion') return null;
+    return { proyecto_id: proyectoId, estado: bodyObj.estado };
+  }
+  return { proyecto_id: proyectoId };
 }
