@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import SheetDialog from '@/components/ui/SheetDialog';
+import PaletaColores from './PaletaColores';
 import {
-  COLORES_PROYECTO,
   COLOR_PROYECTO_DEFAULT,
   MAX_DESC_PROYECTO,
   MAX_NOMBRE_PROYECTO
@@ -46,10 +46,7 @@ export default function ModalCrearProyecto(props: {
 
   return (
     <SheetDialog label="Crear proyecto" onCerrar={props.onCerrar} ocupado={enviando}>
-      <form
-        onSubmit={(e) => void enviar(e)}
-        className="space-y-2.5 pb-2 pt-4"
-      >
+      <form onSubmit={(e) => void enviar(e)} className="space-y-2.5 pb-2 pt-4">
         <p className="text-center font-display text-lg font-semibold">Crear proyecto</p>
 
         <label htmlFor="modal-proyecto-nombre" className="block text-[13px] font-semibold text-text">
@@ -64,10 +61,7 @@ export default function ModalCrearProyecto(props: {
           className="h-11 w-full rounded-card border border-border bg-surface px-3 text-[15px] text-text placeholder:text-text-soft"
         />
 
-        <label
-          htmlFor="modal-proyecto-desc"
-          className="block pt-1 text-[13px] font-semibold text-text"
-        >
+        <label htmlFor="modal-proyecto-desc" className="block pt-1 text-[13px] font-semibold text-text">
           Descripcion (opcional)
         </label>
         <textarea
@@ -80,26 +74,7 @@ export default function ModalCrearProyecto(props: {
           className="w-full rounded-card border border-border bg-surface px-3 py-2 text-[14px] text-text placeholder:text-text-soft"
         />
 
-        <fieldset>
-          <legend className="mb-1.5 pt-1 text-[12px] text-text-soft">Color</legend>
-          <div className="flex flex-wrap gap-2">
-            {COLORES_PROYECTO.map((opcion) => (
-              <button
-                key={opcion.hex}
-                type="button"
-                aria-label={`Color ${opcion.nombre}`}
-                aria-pressed={opcion.hex === color}
-                onClick={() => setColor(opcion.hex)}
-                className={`h-8 w-8 rounded-full border border-border ${
-                  opcion.hex === color
-                    ? 'ring-2 ring-accent ring-offset-2 ring-offset-raised'
-                    : ''
-                }`}
-                style={{ backgroundColor: opcion.hex }}
-              />
-            ))}
-          </div>
-        </fieldset>
+        <PaletaColores valor={color} onElegir={setColor} />
 
         {error ? (
           <p role="alert" className="text-[12px] text-danger">

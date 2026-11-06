@@ -1,23 +1,54 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '../AppShell';
-import ProyectoHeader from './ProyectoHeader';
-import ObjetivosProyecto from './ObjetivosProyecto';
-import IdeasProyecto from './IdeasProyecto';
-import TareasProyecto from '@/components/tareas/TareasProyecto';
+import PanelesProyecto from './PanelesProyecto';
+import { BannerAvisoFoco } from './AvisosFoco';
+import { EsqueletoDetalle, SinProyecto } from './EstadosDetalle';
 import { useDetalleProyecto } from './useDetalleProyecto';
+import { useAccionesIdeas } from './useAccionesIdeas';
+import { actualizarProyecto } from '@/lib/foco';
+import type { TabId } from '@/lib/types';
+import type { ComponentProps } from 'react';
 
+type TabProyecto = NonNullable<ComponentProps<typeof PanelesProyecto>['tab']>;
+
+/** proyecto simplificado (modulo 11): cabecera + tabs Notas/Investigacion/
+ * Tareas. Notas = ideas estado 'proyecto'; investigaciones = ideas estado
+ * 'investigacion'; todo via API existente (sin tablas nuevas). */
 export default function ProyectoDetalle(props: { proyectoId: string; email?: string }) {
   const router = useRouter();
   const detalle = useDetalleProyecto(props.proyectoId);
   const proyecto = detalle.proyecto;
-  const [tareasVersion, setTareasVersion] = useState(0);
+  const [tab, setTab] = useState<TabProyecto>('notas');
+  const [plegando, setPlegando] = useState(false);
+  const acciones = useAccionesIdeas(props.proyectoId, detalle.cargar);
+
+  const notas = useMemo(
+    () => detalle.ideas.filter((i) => i.estado === 'proyecto'),
+    [detalle.ideas]
+  );
+  const investigaciones = useMemo(
+    () => detalle.ideas.filter((i) => i.estado === 'investigacion'),
+    [detalle.ideas]
+  );
+
+  async function plegar() {
+    if (!proyecto || plegando) return;
+    setPlegando(true);
+    try {
+      await actualizarProyecto(proyecto.id, { plegado: true });
+      router.push('/foco');
+    } catch {
+      detalle.avisar('No se pudo plegar el proyecto. Reintenta.');
+      setPlegando(false);
+    }
+  }
 
   return (
     <AppShell
-      activeTab="foco"
+      activeTab={'foco' satisfies TabId}
       titulo={proyecto?.nombre ?? 'Proyecto'}
       email={props.email}
       headerLeft={
@@ -32,82 +63,31 @@ export default function ProyectoDetalle(props: { proyectoId: string; email?: str
       }
     >
       <div className="mx-auto w-full max-w-[64rem]">
-      {detalle.toast ? (
-        <p role="alert" className="mb-3 rounded-card bg-danger px-4 py-2.5 text-sm text-white">
-          {detalle.toast}
-        </p>
-      ) : null}
-
-      {detalle.cargando ? (
-        <div className="space-y-3" aria-hidden="true">
-          <div className="anim-shimmer h-16 w-full rounded-card bg-border" />
-          <div className="anim-shimmer h-24 w-full rounded-card bg-border" />
-          <div className="anim-shimmer h-20 w-full rounded-card bg-border" />
-        </div>
-      ) : null}
-
-      {!detalle.cargando && detalle.error ? (
-        <div className="rounded-card bg-danger px-4 py-3 text-sm text-white">
-          {detalle.error}
-          <button
-            type="button"
-            onClick={() => void detalle.cargar()}
-            className="ml-2 h-9 rounded-blob border border-white px-3 text-[13px] font-semibold"
-          >
-            Reintentar
-          </button>
-        </div>
-      ) : null}
-
-      {!detalle.cargando && !detalle.error && !proyecto ? (
-        <div className="space-y-3 pt-10 text-center">
-          <p className="font-display text-xl font-semibold">Ese proyecto no existe.</p>
-          <button
-            type="button"
-            onClick={() => router.push('/foco')}
-            className="h-11 w-full rounded-card border border-border text-[14px] font-semibold text-text"
-          >
-            Volver a Foco
-          </button>
-        </div>
-      ) : null}
-
-      {!detalle.cargando && !detalle.error && proyecto ? (
-        <div className="space-y-5">
-          <ProyectoHeader
-            proyecto={proyecto}
-            ideasCount={detalle.ideas.length}
-            plegando={detalle.plegando}
-            onToggle={() => void detalle.alternarPlegado()}
-          />
-
-          <div className="space-y-5 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-8">
-            <div className="min-w-0 space-y-5">
-              <ObjetivosProyecto
-                objetivos={detalle.objetivos}
-                ocupadoId={detalle.objetivoOcupado}
-                onCrear={detalle.agregarObjetivo}
-                onEstado={(objetivo) => void detalle.cambiarEstado(objetivo)}
-                onBorrar={(id) => void detalle.eliminarObjetivo(id)}
-                onTareasCreadas={() => setTareasVersion((v) => v + 1)}
-              />
-
-              <TareasProyecto key={`tareas-${tareasVersion}`} proyectoId={proyecto.id} />
-            </div>
-
-            <aside className="min-w-0 space-y-4 lg:sticky lg:top-6">
-              <IdeasProyecto ideas={detalle.ideas} />
-              <button
-                type="button"
-                onClick={() => router.push('/foco')}
-                className="h-11 w-full rounded-card border border-border text-[14px] font-semibold text-text"
-              >
-                Volver a Foco
-              </button>
-            </aside>
+        {detalle.cargando && !proyecto ? <EsqueletoDetalle /> : null}
+        {detalle.cargando ? null : (
+          <div className={detalle.error || detalle.toast ? 'mb-3' : undefined}>
+            <BannerAvisoFoco
+              error={detalle.error}
+              toast={detalle.toast}
+              onReintentar={detalle.error ? () => void detalle.cargar() : undefined}
+            />
           </div>
-        </div>
-      ) : null}
+        )}
+        {!detalle.cargando && !detalle.error && proyecto ? (
+          <PanelesProyecto
+            proyecto={proyecto}
+            plegando={plegando}
+            onPlegar={() => void plegar()}
+            tab={tab}
+            onTab={setTab}
+            notas={notas}
+            investigaciones={investigaciones}
+            objetivos={detalle.objetivos}
+            crearIdea={acciones.crearIdea}
+            moverIdea={acciones.moverIdea}
+          />
+        ) : null}
+        {!detalle.cargando && !detalle.error && !proyecto ? <SinProyecto /> : null}
       </div>
     </AppShell>
   );

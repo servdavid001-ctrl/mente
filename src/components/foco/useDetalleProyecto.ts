@@ -134,6 +134,7 @@ export function useDetalleProyecto(proyectoId: string) {
     agregarObjetivo,
     cambiarEstado,
     eliminarObjetivo,
-    cerrarToast: () => setToast(null)
+    cerrarToast: () => setToast(null),
+    avisar: (mensaje: string) => setToast(mensaje)
   };
 }

@@ -11,6 +11,7 @@ import VistaTarjetas from './VistaTarjetas';
 import ModalCrearProyecto from './ModalCrearProyecto';
 import ModalPlegados from './ModalPlegados';
 import BotonesFlotantes from './BotonesFlotantes';
+import { BannerAvisoFoco, EsqueletoFoco } from './AvisosFoco';
 import { useFoco } from './useFoco';
 import { mensajeGuardian } from '@/lib/foco';
 
@@ -36,7 +37,15 @@ export default function Foco(props: { email?: string }) {
   return (
     <AppShell activeTab="foco" titulo="Foco" email={props.email}>
       <div className="mx-auto w-full max-w-[75rem] space-y-5 pb-28">
-        {foco.cargando ? <EsqueletoFoco /> : <BannerAviso aviso={foco} />}
+        {foco.cargando ? (
+          <EsqueletoFoco />
+        ) : (
+          <BannerAvisoFoco
+            error={foco.error}
+            toast={foco.toast}
+            onReintentar={foco.error ? () => void foco.cargar() : undefined}
+          />
+        )}
 
         {!foco.cargando && !foco.error ? (
           <>
@@ -85,41 +94,5 @@ export default function Foco(props: { email?: string }) {
         />
       ) : null}
     </AppShell>
-  );
-}
-
-function BannerAviso(props: { aviso: ReturnType<typeof useFoco> }) {
-  const { aviso } = props;
-  if (aviso.error) {
-    return (
-      <div className="rounded-card bg-danger px-4 py-3 text-sm text-white">
-        {aviso.error}
-        <button
-          type="button"
-          onClick={() => void aviso.cargar()}
-          className="ml-2 h-9 rounded-blob border border-white px-3 text-[13px] font-semibold"
-        >
-          Reintentar
-        </button>
-      </div>
-    );
-  }
-  if (aviso.toast) {
-    return (
-      <p role="alert" className="rounded-card bg-danger px-4 py-2.5 text-sm text-white">
-        {aviso.toast}
-      </p>
-    );
-  }
-  return null;
-}
-
-function EsqueletoFoco() {
-  return (
-    <div className="space-y-3" aria-hidden="true">
-      <div className="anim-shimmer h-20 w-full rounded-card bg-gradient-to-r from-border via-surface to-border" />
-      <div className="anim-shimmer h-44 w-full rounded-card bg-border" />
-      <div className="anim-shimmer h-16 w-full rounded-card bg-border" />
-    </div>
   );
 }
