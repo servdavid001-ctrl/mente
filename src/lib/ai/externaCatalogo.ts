@@ -6,7 +6,6 @@ import { normalizarTitulo } from '@/lib/externas';
 import { itemsGoogle, itemsOpenLibrary } from './externaMapeo';
 import type { ItemExterno } from '@/lib/types';
 
-const TIMEOUT = AbortSignal.timeout(5000);
 const UA = { 'User-Agent': 'MenteBot/1.0', Accept: 'application/json' };
 const GOOGLE = 'https://www.googleapis.com/books/v1/volumes';
 const OPENLIB = 'https://openlibrary.org/search.json';
@@ -17,7 +16,9 @@ export type EntidadCatalogo = { nombre: string; tipo: string };
 
 async function fetchJson(url: string): Promise<unknown> {
   try {
-    const res = await fetch(url, { headers: UA, signal: TIMEOUT });
+    /* signal PER-CALL: un AbortSignal a nivel de modulo muere con el proceso
+     * (audit B2) — cada request crea el suyo */
+    const res = await fetch(url, { headers: UA, signal: AbortSignal.timeout(5000) });
     if (!res.ok) return null;
     return await res.json();
   } catch {
@@ -32,7 +33,10 @@ async function itemsDeEntidad(
   conocidas: Set<string>
 ): Promise<ItemExterno[]> {
   const esAutor = entidad.tipo === 'autor';
-  const qGoogle = esAutor ? `inauthor:"${entidad.nombre}"` : `intitle:"${entidad.nombre}"`;
+  /* audit MA1: quinemos comillas/backslash del nombre antes de meterlo en la
+   * frase encomillada de Google Books (no romper la query con operadores) */
+  const nombre = entidad.nombre.replace(/["\\]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
+  const qGoogle = esAutor ? `inauthor:"${nombre}"` : `intitle:"${nombre}"`;
   const urlOl = esAutor
     ? `${OPENLIB}?author=${encodeURIComponent(entidad.nombre)}&limit=8&fields=${CAMPOS_OL}`
     : `${OPENLIB}?q=${encodeURIComponent(entidad.nombre)}&limit=8&fields=${CAMPOS_OL}`;
