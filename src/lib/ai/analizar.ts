@@ -3,7 +3,7 @@
  * conexiones embedding-lite contra el resto de la biblioteca. */
 
 import { descargarSeguro, extraerTextoHtml, urlExternaSegura } from './fetchSeguro';
-import { transcribir, chat } from './provider';
+import { transcribir, chat, type Credencial } from './provider';
 import { extraerPalabras, palabrasCompartidas } from './keywords';
 import { MAX_TEXTO } from '@/lib/biblioteca';
 import type { Coleccion } from '@/lib/types';
@@ -21,7 +21,8 @@ const CAP_MEDIA = 25 * 1_048_576; /* 25MB: contracto de transcription Whisper */
  * texto (contenido). Errores tipados para el status de la route. */
 export async function obtenerContenido(
   supabase: SupabaseCliente,
-  idea: { kind: string; text: string; sourceUrl: string | null }
+  idea: { kind: string; text: string; sourceUrl: string | null },
+  credenciales: Credencial[]
 ): Promise<string> {
   if (idea.kind === 'texto') return idea.text.slice(0, CAP_PROMPT);
   if (idea.kind === 'link') {
@@ -30,7 +31,7 @@ export async function obtenerContenido(
     if (!url) throw new Error('_url_no_segura');
     const c = await descargarSeguro(url);
     if (c.clase === 'audio' || c.clase === 'video')
-      return await transcribirBytes(c.bytes, `${url.hostname}.audio`);
+      return await transcribirBytes(c.bytes, `${url.hostname}.audio`, credenciales);
     const texto = c.bytes ? extraerTextoHtml(new TextDecoder().decode(c.bytes)) : '';
     if (!texto) throw new Error('No encontramos contenido en este link.');
     return texto.slice(0, CAP_PROMPT);
@@ -45,13 +46,17 @@ export async function obtenerContenido(
   if (!res.ok || !res.body) throw new Error('_sin_audio');
   const len = Number(res.headers.get('content-length') ?? '0');
   if (len > CAP_MEDIA) throw new Error('_demasiado_grande');
-  return await transcribirBytes(await res.arrayBuffer(), `${idea.sourceUrl}.webm`);
+  return await transcribirBytes(await res.arrayBuffer(), `${idea.sourceUrl}.webm`, credenciales);
 }
 
-async function transcribirBytes(bytes: ArrayBuffer | null, nombre: string): Promise<string> {
+async function transcribirBytes(
+  bytes: ArrayBuffer | null,
+  nombre: string,
+  credenciales: Credencial[]
+): Promise<string> {
   if (!bytes || bytes.byteLength === 0) throw new Error('_demasiado_grande');
   try {
-    const texto = await transcribir(bytes, nombre);
+    const texto = await transcribir(bytes, nombre, credenciales);
     if (texto === '') throw new Error('No encontramos contenido en este audio.');
     return texto;
   } catch (e: unknown) {
@@ -69,7 +74,11 @@ type Inteligencia = {
 };
 
 /** UNA llamada al modelo con salida JSON: categoria + entidades + pasos */
-async function inteligenciaDe(texto: string, colecciones: Coleccion[]): Promise<Inteligencia> {
+async function inteligenciaDe(
+  texto: string,
+  colecciones: Coleccion[],
+  credenciales: Credencial[]
+): Promise<Inteligencia> {
   const resp = await chat([
     {
       role: 'system',
@@ -88,7 +97,7 @@ async function inteligenciaDe(texto: string, colecciones: Coleccion[]): Promise<
           colecciones.map((c) => c.nombre)
         )}. Contenido:\n${texto}`
     }
-  ]);
+  ], credenciales);
   if (!resp) throw new Error('Tu AI no respondio. Reintentar');
   return parseInteligencia(resp, colecciones);
 }
@@ -143,7 +152,8 @@ export async function analizarItem(
     sourceUrl: string | null;
     transcripcion: string | null;
   },
-  colecciones: Coleccion[]
+  colecciones: Coleccion[],
+  credenciales: Credencial[]
 ): Promise<{
   contenido: string;
   reaprovechado: boolean;
@@ -159,9 +169,9 @@ export async function analizarItem(
       kind: idea.kind,
       text: idea.text,
       sourceUrl: idea.sourceUrl
-    });
+    }, credenciales);
   }
-  const int = await inteligenciaDe(contenido, colecciones);
+  const int = await inteligenciaDe(contenido, colecciones, credenciales);
 
   /* conexiones embedding-lite: keywords vs nota+contenido de items en biblioteca */
   const { data: otros, error: errOtros } = await supabase

@@ -1,29 +1,47 @@
+'use client';
+
+import type { EstadoCredencial } from '@/lib/ai/credenciales';
 import SeccionAjustes from './SeccionAjustes';
 import ChipEstado from './ChipEstado';
+import FormularioCredencialAi from './FormularioCredencialAi';
 
-/** AI: solo estado booleano derivado del servidor; nunca expone claves */
-export default function AjustesAI(props: { configurada: boolean }) {
+/** AI: estado (proveedor + last4), gestion de clave y nota de privacidad */
+export default function AjustesAI(props: { estado: EstadoCredencial }) {
+  const { estado } = props;
   return (
     <SeccionAjustes
       id="ai"
       titulo="AI"
       descripcion="Clasifica y sugiere categoria, explica items y propone conexiones."
       chip={
-        <ChipEstado tono={props.configurada ? 'ok' : 'neutro'}>
-          {props.configurada ? 'Configurada' : 'No configurada'}
+        <ChipEstado tono={estado.configurada ? 'ok' : 'neutro'}>
+          {estado.configurada ? 'Configurada' : 'No configurada'}
         </ChipEstado>
       }
     >
-      <div className="space-y-2 text-[13px] leading-snug text-text-soft">
-        <p>Nada se aplica sin tu toque. La app funciona sin AI.</p>
-        <p>
-          {props.configurada
-            ? 'El servidor ya tiene una clave configurada. Se gestiona en las variables de entorno de Vercel.'
-            : 'Para activarla, el servidor necesita una clave. Se configura en las variables de entorno de Vercel.'}
-        </p>
-        <p>
-          Tu contenido se envia al proveedor de AI solo cuando pides una sugerencia o una
-          explicacion. La clave nunca se muestra en la app.
+      <div className="space-y-4">
+        <FormularioCredencialAi inicial={estado} />
+        <div className="flex flex-wrap gap-3 text-[12px]">
+          <a
+            href="https://openrouter.ai/keys"
+            target="_blank"
+            rel="noreferrer"
+            className="text-text-soft underline"
+          >
+            Obtener clave de OpenRouter
+          </a>
+          <a
+            href="https://platform.openai.com/api-keys"
+            target="_blank"
+            rel="noreferrer"
+            className="text-text-soft underline"
+          >
+            Obtener clave de OpenAI
+          </a>
+        </div>
+        <p className="text-[13px] leading-snug text-text-soft">
+          Tu clave se guarda cifrada en el servidor y nunca se envia al navegador. La
+          transcripcion de audio usa OpenAI o el modelo de audio de OpenRouter.
         </p>
       </div>
     </SeccionAjustes>

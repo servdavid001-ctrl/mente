@@ -13,6 +13,7 @@ import {
   sugerenciasVivas
 } from '@/lib/ai/sugerencias';
 import { mapColeccionRow } from '@/lib/biblioteca';
+import { credencialesUsuario } from '@/lib/ai/credenciales';
 import type { Coleccion, Idea, Sugerencia } from '@/lib/types';
 
 /**
@@ -40,6 +41,9 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       );
     }
 
+    /* credenciales del usuario (o del entorno como fallback) */
+    const credenciales = await credencialesUsuario(user.id);
+
     const { data: bruta, error: errIdea } = await supabase
       .from('ideas')
       .select(SELECT_IDEA)
@@ -62,7 +66,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
       text: idea.text,
       sourceUrl: idea.sourceUrl ?? null,
       transcripcion: idea.transcripcion ?? null
-    }, colecciones);
+    }, colecciones, credenciales);
     const vivas = await sugerenciasVivas(supabase, idea.id);
     const nuevas: SugerenciaNueva[] = filtrarNuevas(resultado.sugerencias, vivas);
 

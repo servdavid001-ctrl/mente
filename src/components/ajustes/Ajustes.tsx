@@ -8,9 +8,10 @@ import AjustesApp from './AjustesApp';
 import AjustesAI from './AjustesAI';
 import AjustesDatos from './AjustesDatos';
 import AjustesAcerca from './AjustesAcerca';
+import type { EstadoCredencial } from '@/lib/ai/credenciales';
 
 /** panel /ajustes: cuenta, apariencia, distribucion, AI, datos y acerca de */
-export default function Ajustes(props: { email?: string; aiConfigurada: boolean }) {
+export default function Ajustes(props: { email?: string; aiEstado: EstadoCredencial }) {
   return (
     <AppShell activeTab="ajustes" titulo="Ajustes" email={props.email}>
       <div className="mx-auto w-full max-w-[48rem]">
@@ -24,7 +25,7 @@ export default function Ajustes(props: { email?: string; aiConfigurada: boolean 
           <AjustesApariencia />
           <AjustesExtension />
           <AjustesApp />
-          <AjustesAI configurada={props.aiConfigurada} />
+          <AjustesAI estado={props.aiEstado} />
           <AjustesDatos />
           <AjustesAcerca />
         </div>

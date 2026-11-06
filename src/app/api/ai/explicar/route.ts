@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { SELECT_IDEA, mapIdeaRow } from '@/lib/ideas';
 import { chatStream, MENSAJE_AI_INDISPONIBLE, type ChatMsg } from '@/lib/ai/provider';
+import { credencialesUsuario } from '@/lib/ai/credenciales';
 import { extraerPalabras } from '@/lib/ai/keywords';
 
 /**
@@ -30,6 +31,9 @@ export async function POST(request: Request) {
         { status: 429 }
       );
     }
+
+    /* credenciales del usuario (o del entorno como fallback) */
+    const credenciales = await credencialesUsuario(user.id);
 
     const body = (await request.json().catch(() => null)) as Record<string, unknown> | null;
     const ideaId = typeof body?.ideaId === 'string' ? body.ideaId : '';
@@ -108,7 +112,7 @@ export async function POST(request: Request) {
       }
     ];
 
-    const cruda = await chatStream(mensajes);
+    const cruda = await chatStream(mensajes, credenciales);
     /* el 429 del provider se evalua ANTES de !ok para no degradarlo a 503 */
     if (cruda && cruda.status === 429) {
       return NextResponse.json(

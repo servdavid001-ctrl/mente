@@ -48,3 +48,13 @@
 - Tema oscuro con variables CSS y script pre-paint; contraste AA.
 - Extension empaquetada con iconos en `/downloads/mente-extension.zip`.
 - APK via Capacitor (WebView de produccion) compilado localmente con JDK 21 + Android SDK 35 y publicado en release `apk-1`. El workflow de CI queda en `docs/ci/` porque el PAT no tiene scope `workflow`.
+
+## 2026-11-06 - Modulo 8: clave AI por usuario (enmienda de implementacion)
+- La clave deja de ser solo env (`OPENROUTER_API_KEY`/`OPENAI_API_KEY`): se gestiona en `/ajustes` y vive por usuario en `ai_credenciales` (migracion 0009). FOUNDATION intacto: sigue single-user y la AI sigue sugiriendo con aprobacion; cambia solo el origen de la credencial.
+- Un proveedor activo por usuario (OpenRouter u OpenAI), sin fallback cruzado entre claves de usuario. La env queda como fallback de desarrollo si no hay fila.
+- Cifrado AES-256-GCM en la app con `AI_KEY_SECRET`: `v2.<iv>.<tag>.<cipher>` con AAD = `user_id` (mover la fila a otro usuario invalida el descifrado); lectura de `v1` por compatibilidad. La DB nunca ve texto plano; rotar el secreto obliga a reingresar la clave (la UI reporta "no configurada").
+- `ai_credenciales`: RLS ON sin policies + `revoke all` a anon/authenticated; solo service_role. Verificado en vivo: anon 401/42501, service_role 201/204. El cliente solo recibe `proveedor`, `last4`, `actualizado`; `/api/exportar` no incluye la tabla.
+- Validacion al guardar contra endpoint autenticado (OpenAI `/models`, OpenRouter `/key`; `/models` de OpenRouter es publico y no valida). Rate limit 10/h por usuario en memoria (best-effort, consistente con las demas deudas).
+- Desviacion justificada del plan: el MCP Supabase global apunta a otro proyecto (`tlkvqcgkrkmtcvutjcbz`); la migracion se aplico via Management API contra `vgtbznppcthyitnzgmlt` y se registro en `supabase_migrations` (version 0009). El MCP sigue pendiente de reinicio.
+- Endurecimiento aplicado tras audit: `credencialesUsuario` cae a env si falla la lectura admin (no tumba `/api/ai/*`); errores 500 genericos en la ruta nueva; `Cache-Control: private, no-store`; timeout 30s en chat.
+- `.eslintignore` (mobile/, builds, downloads, scripts): el lint vuelve a 0 errores; era el unico fallo del gate local.

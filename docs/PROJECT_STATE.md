@@ -1,19 +1,19 @@
 # PROJECT_STATE — Mente (provisional)
-Última actualización: 2026-11-05
+Última actualización: 2026-11-06
 
 ## Estado actual
-**v1 completa + UI v2 (responsive, ajustes, tema, extension y APK) desplegada en producción.** Build verde, 0 vulnerabilidades npm, security audit APROBADO, QA en vivo de módulos 1-7 sin errores de página.
-Siguiente: pulido de UI y backlog v2 del FOUNDATION.
+**v1 funcional + clave AI por usuario en /ajustes (módulo 8).** Build verde, tsc/lint en 0 errores, security audit APROBADO, 0 vulnerabilidades npm. La AI se activa cuando el usuario guarda su clave de OpenRouter u OpenAI en Ajustes (antes solo por env).
+Siguiente: David pega su clave en /ajustes y se valida AI real en producción; después higiene asistida (#11) y tests.
 
 ## Distribución
 - Extension: https://mente-ten-iota.vercel.app/downloads/mente-extension.zip
 - APK (debug, Capacitor): https://github.com/servdavid001-ctrl/mente/releases/tag/apk-1
-- Panel de ajustes: /ajustes
+- Panel de ajustes: /ajustes (clave AI, tema, extension, datos)
 
 ## Producción
 - URL: https://mente-ten-iota.vercel.app
-- Vercel: proyecto `mente`, SSO protection activa (prod accesible, previews protegidas).
-- Supabase: `vgtbznppcthyitnzgmlt` (us-east-1), migraciones 0001-0008 aplicadas y registradas.
+- Vercel: proyecto `mente`; `AI_KEY_SECRET` en prod/preview/dev.
+- Supabase: `vgtbznppcthyitnzgmlt` (us-east-1), migraciones 0001-0009 aplicadas y registradas.
 - GitHub: `servdavid001-ctrl/mente`, rama `main`.
 
 ## Módulos completados
@@ -21,57 +21,49 @@ Siguiente: pulido de UI y backlog v2 del FOUNDATION.
 |---|---|---|---|
 | 1 | Fundamento (login, bandeja, captura, PWA) | /, /login, /api/ideas[/id] | ✓ |
 | 2 | Biblioteca creativa | /biblioteca[/id], /api/colecciones[/id], /api/conexiones | ✓ |
-| 3 | AI organizadora | /api/ai/analizar, /sugerencias, /explicar | ✓ código (requiere key) |
+| 3 | AI organizadora | /api/ai/analizar, /sugerencias, /explicar | ✓ (requiere clave) |
 | 4 | Foco: proyectos, objetivos, guardián, copiloto | /foco[/id], /api/proyectos[/id], /api/objetivos[/id] | ✓ |
 | 5 | Extensión Chrome + tokens de captura | extension/, /api/captura[/token] | ✓ |
 | 6 | Share-target móvil + service worker | /compartir (POST), public/sw.js | ✓ |
 | 7 | Tareas (idea/plan→tareas, Hoy) | /api/tareas[/id], /api/ideas/[id]/tareas | ✓ |
+| 8 | Clave AI por usuario | /ajustes, /api/ajustes/ai | ✓ código |
 
 ## Deuda abierta
-- **AI no operativa en prod**: falta `OPENROUTER_API_KEY` u `OPENAI_API_KEY`. La UI degrada con 503 claro.
-- Rate limit en `/api/captura` y `/compartir` (solo AI lo tiene).
+- **AI sin probar en prod con clave real**: el flujo existe; falta que David guarde su clave en /ajustes y se verifique analizar/explicar.
+- Higiene asistida del FOUNDATION (#11): no existe (solo guardián a nivel proyecto).
+- Conexiones con conocimiento externo (#5): no implementado (solo keywords internas).
+- Rate limit de `/api/captura`, `/compartir` y de guardar clave (Map en memoria, por instancia).
 - Magic bytes de imágenes (hoy solo MIME declarado).
 - Triggers de pertenencia cross-tenant en FKs de proyectos/objetivos/tareas (la API ya valida).
-- Errores PostgREST crudos al cliente en algunas rutas.
+- Errores PostgREST crudos al cliente en rutas antiguas (la nueva ruta ya devuelve genérico).
 - CSP Report-Only con `unsafe-eval`; cookies de sesión no HttpOnly.
-- React 18 deprecado en Next 16 (subir a 19 antes de Next 17); `eslint-config-next` 14.
+- React 18 deprecado en Next 16; `eslint-config-next` 14.
 - Capturas >4.5 MB fallan por body limit de Vercel.
-- Sin service worker de caché offline (solo passthrough para share-target).
-- Sin framework de tests configurado (gate = build + tsc + lint + QA en vivo).
-- CI del APK bloqueada: el PAT no tiene scope `workflow` para versionar `.github/workflows/`; el workflow vive en `docs/ci/`.
-- APK en debug (sin firma de release ni Play Store); el wrapper carga produccion por URL.
-- Iconos PWA solo SVG (Android puede pedir PNG para instalar).
-- Rate limit de registro best-effort por instancia (Map en memoria); reinicia con cold start.
-- MCP Supabase global corregido a `vgtbznppcthyitnzgmlt`; requiere reiniciar opencode.
+- Sin framework de tests (gate real = build + tsc + lint + QA en vivo).
+- CI del APK bloqueada: el PAT no tiene scope `workflow` (workflow en `docs/ci/`).
+- APK en debug (sin firma de release); iconos PWA ya en PNG.
+- **MCP Supabase global apunta a otro proyecto** (`tlkvqcgkrkmtcvutjcbz`, prospección), no a `vgtbznppcthyitnzgmlt`: reiniciar opencode. Mientras tanto, migraciones vía Management API/CLI.
+- Rotar `AI_KEY_SECRET` invalida las claves guardadas (la UI pide reingresar); rotar el PAT `sbp_...` visible en logs.
 
 ## Bugs abiertos AHORA
 (ninguno)
 
 ## Últimas decisiones
-- 2026-11-05: UI v2: sidebar desktop (md+), grid 2/3/4, detalle a 2 columnas, tema claro/oscuro/sistema, /ajustes con 7 secciones, export JSON, ZIP de extension y APK Capacitor publicado.
-- 2026-11-05: Registro por invitacion (`/registro` + `REGISTRO_INVITE_CODE`); el signup publico de Supabase sigue cerrado. Logout anadido al header. Contrato single-user intacto.
-- 2026-11-05: Módulos 4-7 construidos sin IA: copiloto por líneas, captura por token de dispositivo, share-target solo POST (GET eliminado por CSRF), tareas extraídas de minuta/líneas.
-- 2026-11-05: `/compartir` exento del proxy pero con auth propia; mutación solo por POST.
-- 2026-11-04: Next 16.4.5, registro cerrado, rate limit AI atómico, SSRF con DNS fijado, migración 0005.
-- 2026-11-01: 3 apartados (Foco/Bandeja/Biblioteca); proyectos plegables por decisión del usuario.
+- 2026-11-06: Módulo 8: clave AI por usuario en /ajustes. Proveedor único (OpenRouter/OpenAI), validación contra endpoint autenticado, AES-256-GCM con AAD=user_id (v2, lee v1), tabla `ai_credenciales` RLS sin policies + revoke (solo service_role), `AI_KEY_SECRET`, fallback a env en dev.
+- 2026-11-06: `.eslintignore` añadido (mobile/, builds, downloads): lint vuelve a 0 errores.
+- 2026-11-05: UI v2: sidebar desktop, grid 2/3/4, tema claro/oscuro/sistema, /ajustes, export JSON, ZIP y APK.
+- 2026-11-05: Registro por invitacion (`/registro` + `REGISTRO_INVITE_CODE`); signup publico cerrado. Contrato single-user intacto.
+- 2026-11-05: Módulos 4-7 sin IA: copiloto por líneas, captura por token, share-target solo POST, tareas desde minuta/líneas.
 
 ## Alertas activas
-- **Falta AI key** para activar módulo 3 (David).
-- **Codigo de invitacion activo**: `REGISTRO_INVITE_CODE` en Vercel y `.env.local` (rotarlo si se filtra).
-- Rotar token `sbp_...` de la config global de opencode (visible en logs de sesión).
-- Probar la extensión y el share-target en un dispositivo real (requiere instalar PWA y pegar token).
+- **Pegar la clave AI en /ajustes** para activar el módulo 3 en producción (David).
+- **MCP Supabase mal apuntado** (ver deuda): no usar para migraciones hasta reiniciar opencode.
+- Código de invitación activo (`REGISTRO_INVITE_CODE`): rotarlo si se filtra.
+- Probar extensión y share-target en dispositivo real.
 
 ---
-## QA REPORT — 2026-11-05 (UI v2)
-390/768/1440 sin overflow; sidebar/bottom nav correctos; biblioteca 4 columnas en 1440; ajustes 7 secciones; tema oscuro persiste; export 200; ZIP 200; APK 200; 0 pageerrors.
+## QA — 2026-11-06 (módulo 8, local/producción)
+tsc 0 · lint 0 errores · build 0 · REST anon sobre `ai_credenciales` 401 · service_role 201/204 · `GET/PUT/DELETE /api/ajustes/ai` sin sesión 401 · PATCH 405 · sin CORS · bundle cliente sin símbolos de servidor.
 
-## QA REPORT — 2026-11-05 (producción, módulos 4-7)
-URL: https://mente-ten-iota.vercel.app | Playwright + sesión real
-- Crear proyecto y abrir detalle: PASS
-- Objetivo con plan (3 pasos) → "3 tareas creadas": PASS
-- Crear tarea manual y verla en "Hoy": PASS
-- Generar token de extensión y capturar texto por API: 201 PASS
-- Revocar token: PASS
-- Share-target POST → idea en bandeja: PASS
-- Errores de página: 0
-- Datos de prueba eliminados (15 ideas, 0 proyectos/objetivos/tareas/tokens).
+## QA — 2026-11-05 (UI v2 y módulos 4-7)
+390/768/1440 sin overflow; sidebar/bottom nav correctos; ajustes 7 secciones; tema oscuro persiste; export 200; ZIP 200; APK 200. Proyecto/objetivo→3 tareas, tarea manual en Hoy, token de captura 201, revocar token, share-target POST: PASS. 0 pageerrors. Datos de prueba eliminados.

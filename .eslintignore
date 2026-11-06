@@ -1,0 +1,16 @@
+# Artefactos generados y vendor: nunca lint
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+
+# Wrapper movil (Capacitor) con Android SDK generado y node_modules propios
+mobile/
+
+# Descargas empaquetadas (ZIP de la extension)
+public/downloads/
+
+# Scripts de mantenimiento (Node ESM fuera del bundle)
+scripts/
