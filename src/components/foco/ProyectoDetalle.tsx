@@ -84,7 +84,6 @@ export default function ProyectoDetalle(props: { proyectoId: string; email?: str
             investigaciones={investigaciones}
             objetivos={detalle.objetivos}
             crearIdea={acciones.crearIdea}
-            moverIdea={acciones.moverIdea}
           />
         ) : null}
         {!detalle.cargando && !detalle.error && !proyecto ? <SinProyecto /> : null}
