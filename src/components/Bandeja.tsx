@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import AppShell from './AppShell';
 import CaptureBar from './CaptureBar';
 import InboxList from './InboxList';
@@ -295,6 +296,20 @@ export default function Bandeja({ avisoCompartir, email }: { avisoCompartir?: st
       }
     >
       <div className="mx-auto w-full max-w-[46rem] space-y-2">
+        {!error && !cargando ? (
+          <div className="flex justify-end">
+            <Link
+              href="/higiene"
+              aria-label="Ir a Higiene asistida"
+              className="flex items-start gap-2 rounded-card bg-accent-soft px-4 py-3 text-[13px] text-text hover:opacity-90"
+            >
+              <span aria-hidden="true" className="mt-0.5 text-accent">
+                ◎
+              </span>
+              <p className="leading-snug">Higiene: lo que lleva 14 dias sin uso</p>
+            </Link>
+          </div>
+        ) : null}
         {aviso ? (
           <p role="status" className="rounded-card bg-accent-soft px-4 py-2.5 text-[13px] text-text">
             {aviso}
