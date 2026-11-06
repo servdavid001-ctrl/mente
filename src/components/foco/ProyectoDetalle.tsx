@@ -3,20 +3,19 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import AppShell from '../AppShell';
-import PanelesProyecto from './PanelesProyecto';
+import InterruptorVistas from './InterruptorVistas';
 import { BannerAvisoFoco } from './AvisosFoco';
 import { EsqueletoDetalle, SinProyecto } from './EstadosDetalle';
 import { useDetalleProyecto } from './useDetalleProyecto';
 import { useAccionesIdeas } from './useAccionesIdeas';
-import { actualizarProyecto } from '@/lib/foco';
+import { usePaginasProyecto } from './usePaginasProyecto';
+import { actualizarProyecto, tituloIdea } from '@/lib/foco';
 import type { TabId } from '@/lib/types';
-import type { ComponentProps } from 'react';
 
-type TabProyecto = NonNullable<ComponentProps<typeof PanelesProyecto>['tab']>;
+type TabProyecto = 'notas' | 'investigacion' | 'tareas';
 
-/** proyecto simplificado (modulo 11): cabecera + tabs Notas/Investigacion/
- * Tareas. Notas = ideas estado 'proyecto'; investigaciones = ideas estado
- * 'investigacion'; todo via API existente (sin tablas nuevas). */
+/** proyecto (modulo 11 + 13): tabs Notas/Investigacion/Tareas; el tap de una
+ * nota abre su PAGINA con breadcrumb, subpaginas y mover via PUT parent_id */
 export default function ProyectoDetalle(props: { proyectoId: string; email?: string }) {
   const router = useRouter();
   const detalle = useDetalleProyecto(props.proyectoId);
@@ -24,13 +23,15 @@ export default function ProyectoDetalle(props: { proyectoId: string; email?: str
   const [tab, setTab] = useState<TabProyecto>('notas');
   const [plegando, setPlegando] = useState(false);
   const acciones = useAccionesIdeas(props.proyectoId, detalle.cargar);
+  const paginas = usePaginasProyecto(detalle.ideas);
 
+  // nivel 0 (modulo 13): solo ideas raiz; las subpaginas viven por parent_id
   const notas = useMemo(
-    () => detalle.ideas.filter((i) => i.estado === 'proyecto'),
+    () => detalle.ideas.filter((i) => i.estado === 'proyecto' && !i.parentId),
     [detalle.ideas]
   );
   const investigaciones = useMemo(
-    () => detalle.ideas.filter((i) => i.estado === 'investigacion'),
+    () => detalle.ideas.filter((i) => i.estado === 'investigacion' && !i.parentId),
     [detalle.ideas]
   );
 
@@ -49,13 +50,13 @@ export default function ProyectoDetalle(props: { proyectoId: string; email?: str
   return (
     <AppShell
       activeTab={'foco' satisfies TabId}
-      titulo={proyecto?.nombre ?? 'Proyecto'}
+      titulo={paginas.actual ? tituloIdea(paginas.actual) : (proyecto?.nombre ?? 'Proyecto')}
       email={props.email}
       headerLeft={
         <button
           type="button"
-          aria-label="Volver a Foco"
-          onClick={() => router.push('/foco')}
+          aria-label={paginas.actual ? 'Volver al proyecto' : 'Volver a Foco'}
+          onClick={() => (paginas.actual ? paginas.salir() : router.push('/foco'))}
           className="flex h-11 w-11 items-center justify-center text-text"
         >
           <span aria-hidden="true">←</span>
@@ -74,16 +75,21 @@ export default function ProyectoDetalle(props: { proyectoId: string; email?: str
           </div>
         )}
         {!detalle.cargando && !detalle.error && proyecto ? (
-          <PanelesProyecto
+          <InterruptorVistas
             proyecto={proyecto}
-            plegando={plegando}
-            onPlegar={() => void plegar()}
-            tab={tab}
-            onTab={setTab}
+            paginas={paginas}
             notas={notas}
             investigaciones={investigaciones}
             objetivos={detalle.objetivos}
+            tab={tab}
+            onTab={setTab}
+            plegando={plegando}
+            onPlegar={() => void plegar()}
+            abrirPagina={paginas.abrir}
             crearIdea={acciones.crearIdea}
+            crearSubpagina={acciones.crearSubpaginaEn}
+            moverIdea={acciones.moverIdea}
+            opcionesDe={paginas.opcionesMover}
           />
         ) : null}
         {!detalle.cargando && !detalle.error && !proyecto ? <SinProyecto /> : null}

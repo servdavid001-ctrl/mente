@@ -11,12 +11,14 @@ const ETIQUETA_INV: Record<Idea['kind'], string> = {
   arte: 'Investigacion'
 };
 
-/** apartado Investigacion (modulo 11): lista de investigaciones del proyecto
- * (ideas con estado 'investigacion' + proyecto_id). Nueva investigacion crea
- * la idea raiz; el detalle mantiene el flow actual (/biblioteca/[id]). */
+/** apartado Investigacion (modulo 11 + 13): lista de investigaciones raiz del
+ * proyecto; el tap abre la PAGINA con subpaginas (onAbrir). Nueva
+ * investigacion crea la idea raiz; el detalle /biblioteca sigue intacto. */
 export default function InvestigacionProyecto(props: {
   ideas: Idea[];
   onNueva: (titulo: string) => Promise<void>;
+  onAbrir?: (idea: Idea) => void;
+  hijosPorIdea?: Record<string, number>;
 }) {
   const [titulo, setTitulo] = useState('');
   const [enviando, setEnviando] = useState(false);
@@ -76,7 +78,12 @@ export default function InvestigacionProyecto(props: {
           Sin investigaciones todavia. Crea la primera arriba.
         </p>
       ) : (
-        <ListaNotas ideas={props.ideas} etiqueta={ETIQUETA_INV} />
+        <ListaNotas
+          ideas={props.ideas}
+          etiqueta={ETIQUETA_INV}
+          onAbrir={props.onAbrir}
+          hijosPorIdea={props.hijosPorIdea}
+        />
       )}
     </section>
   );

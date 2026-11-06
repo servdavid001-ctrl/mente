@@ -20,6 +20,9 @@ export default function PanelesProyecto(props: {
   investigaciones: Idea[];
   objetivos: Objetivo[];
   crearIdea: (texto: string, estado: 'proyecto' | 'investigacion') => Promise<void>;
+  // modulo 13: abrir la pagina de una idea raiz + badges de subpaginas
+  abrirPagina: (idea: Idea) => void;
+  hijosPor: Record<string, number>;
 }) {
   return (
     <div className="space-y-4 pt-2">
@@ -41,12 +44,16 @@ export default function PanelesProyecto(props: {
           <NotasProyecto
             ideas={props.notas}
             onNueva={(texto) => props.crearIdea(texto, 'proyecto')}
+            onAbrir={props.abrirPagina}
+            hijosPorIdea={props.hijosPor}
           />
         ) : null}
         {props.tab === 'investigacion' ? (
           <InvestigacionProyecto
             ideas={props.investigaciones}
             onNueva={(titulo) => props.crearIdea(titulo, 'investigacion')}
+            onAbrir={props.abrirPagina}
+            hijosPorIdea={props.hijosPor}
           />
         ) : null}
         {props.tab === 'tareas' ? (

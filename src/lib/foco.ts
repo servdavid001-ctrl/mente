@@ -412,3 +412,55 @@ export async function actualizarObjetivo(
 export function borrarObjetivo(id: string): Promise<void> {
   return pedir<void>(`/api/objetivos/${id}`, { method: 'DELETE' });
 }
+
+/* -- paginas / subpaginas (modulo 13) -- */
+
+export type EstadoPanel = 'proyecto' | 'investigacion';
+
+/** titulo de una idea = primera linea del texto (o fallback por kind) */
+export function tituloIdea(idea: Pick<Idea, 'text' | 'kind' | 'sourceUrl'>): string {
+  const primera = (idea.text ?? '').split('\n')[0].trim();
+  if (primera) return primera;
+  if (idea.kind === 'link') return idea.sourceUrl ?? 'Link';
+  if (idea.kind === 'voz') return 'Nota de voz';
+  return 'Captura';
+}
+
+/** count de hijos directos por id de pagina (badges del modulo 13) */
+export function conteoHijos(ideas: Idea[]): Record<string, number> {
+  const conteo: Record<string, number> = {};
+  for (const idea of ideas) {
+    if (!idea.parentId) continue;
+    conteo[idea.parentId] = (conteo[idea.parentId] ?? 0) + 1;
+  }
+  return conteo;
+}
+
+export function listarHijos(parentId: string): Promise<Idea[]> {
+  return pedir<{ ideas: Idea[] }>(
+    `/api/ideas?parent=${encodeURIComponent(parentId)}`
+  ).then((datos) => datos.ideas);
+}
+
+/** crea la idea texto como subpagina: el server hereda el proyecto del padre */
+export async function crearSubpagina(
+  parentId: string,
+  texto: string,
+  estado: EstadoPanel
+): Promise<Idea> {
+  const res = await pedir<{ idea: Idea }>('/api/ideas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kind: 'texto', text: texto, estado, destino: { parent_id: parentId } })
+  });
+  return res.idea;
+}
+
+/** mover una pagina/nota: PUT parent_id (null = raiz); errores = throw */
+export async function moverIdeaAPagina(ideaId: string, parentId: string | null): Promise<void> {
+  await pedir<{ idea: Idea }>(`/api/ideas/${ideaId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ parent_id: parentId })
+  });
+}
