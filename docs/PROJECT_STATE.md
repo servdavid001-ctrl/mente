@@ -26,7 +26,7 @@ Siguiente: David pega su clave en /ajustes y se valida AI real en producción; d
 | 5 | Extensión Chrome + tokens de captura | extension/, /api/captura[/token] | ✓ |
 | 6 | Share-target móvil + service worker | /compartir (POST), public/sw.js | ✓ |
 | 7 | Tareas (idea/plan→tareas, Hoy) | /api/tareas[/id], /api/ideas/[id]/tareas | ✓ |
-| 8 | Clave AI por usuario | /ajustes, /api/ajustes/ai | ✓ código |
+| 8 | Clave AI por usuario | /ajustes, /api/ajustes/ai | ✓ QA prod PASS |
 
 ## Deuda abierta
 - **AI sin probar en prod con clave real**: el flujo existe; falta que David guarde su clave en /ajustes y se verifique analizar/explicar.
@@ -62,8 +62,8 @@ Siguiente: David pega su clave en /ajustes y se valida AI real en producción; d
 - Probar extensión y share-target en dispositivo real.
 
 ---
-## QA — 2026-11-06 (módulo 8, local/producción)
-tsc 0 · lint 0 errores · build 0 · REST anon sobre `ai_credenciales` 401 · service_role 201/204 · `GET/PUT/DELETE /api/ajustes/ai` sin sesión 401 · PATCH 405 · sin CORS · bundle cliente sin símbolos de servidor.
+## QA — 2026-11-06 (módulo 8, local + producción autenticada)
+tsc 0 · lint 0 · build 0 · REST anon 401 · service_role 201/204 · sin sesión 401/405 · con sesión (admin@mente.local): GET estado 200 no-configurada, PUT formato/proveedor inválido 400, PUT clave falsa 400 con validación remota OK, DELETE 200, /ajustes renderiza chip+form, explicar sin clave 503 copy nuevo, idea ajena por RLS bloqueada. Tabla `ai_credenciales` vacía. Falta solo: clave real de David para probar sugerencia + explicar reales.
 
 ## QA — 2026-11-05 (UI v2 y módulos 4-7)
 390/768/1440 sin overflow; sidebar/bottom nav correctos; ajustes 7 secciones; tema oscuro persiste; export 200; ZIP 200; APK 200. Proyecto/objetivo→3 tareas, tarea manual en Hoy, token de captura 201, revocar token, share-target POST: PASS. 0 pageerrors. Datos de prueba eliminados.
