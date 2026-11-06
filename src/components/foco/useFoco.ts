@@ -54,7 +54,11 @@ export function useFoco() {
     return () => window.clearTimeout(t);
   }, [toast]);
 
-  async function crear(datos: { nombre: string; color: string }): Promise<void> {
+  async function crear(datos: {
+    nombre: string;
+    color: string;
+    descripcion?: string | null;
+  }): Promise<void> {
     const creado = await crearProyecto(datos);
     setProyectos((prev) => [...prev, creado]);
   }
