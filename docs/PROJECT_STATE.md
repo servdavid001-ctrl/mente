@@ -6,9 +6,7 @@
 Security audit APROBADO (0 críticos, 4 menores). Clave AI de David activa en
 `ai_credenciales` (su usuario). READY de David 2026-11-06 (v1 + higiene + externas).
 Breaf de dirección post-v1 clasificado en Versión 2 del FOUNDATION.
-Siguiente: **sesión de planificación agente/MCPs/AI + módulo 12 (extensión v2)**
-— agenda lista en `docs/handoffs/sesion-agente-mcps-agenda.md`. Esperando la
-llamada de David.
+Siguiente: **sesión de planificación agente/MCPs/AI + módulo extensión v2** — agenda en `docs/handoffs/sesion-agente-mcps-agenda.md`. Modulos 12+13 entregados. Notificado a David.
 
 ## Pendientes de decisión David
 - **Módulos 12-13 (draft en docs/handoffs/modulo12-13-flujos-paginas-spec.md)**:
@@ -46,8 +44,11 @@ llamada de David.
 | 9 | Higiene asistida | /higiene, /api/higiene | ✓ QA prod PASS |
 | 10 | Conexiones externas | /api/ai/externa/[id], ficha idea | ✓ deploy OK; QA con clave David pendiente |
 | 11 | Foco UI v2 (tarjetas + proyecto simple) | /foco tarjetas, /foco/[id] tabs | ✓ QA prod PASS end-to-end |
+| 12 | Direccion de flujos | /biblioteca -> proyecto, sin pull inverso | ✓ Audit IDOR pass |
+| 13 | Paginas/subpaginas estilo Notion | ideas.parent_id, breadcrumb, max 3 | ✓ QA prod PASS |
 
 ## Deuda abierta (documentada, no bloquea)
+- Paginas: 3 avisos del audit => 1 tarea unica (secretarian de integridad en BD: subarbol > 3, TOCTOU ciclo, FK bajo RLS).
 - Test real de AI + externas: solo con la sesión de David (su clave, AAD=user_id).
 - Externas MA2-MA5: cuota/merge jsonb/allowlist dominios/cap res.json.
 - Foco UI M1: POST con destino:{} sin estado → 400 (strict correcto); M3 sin rate-limit.
