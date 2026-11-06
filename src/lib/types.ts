@@ -24,6 +24,8 @@ export type Idea = {
   entidades?: EntidadesItem | null;
   // modulo 4: proyecto al que pertenece la idea (null = sin proyecto)
   proyectoId?: string | null;
+  // modulo 13 (paginas): padre dentro del proyecto; null = raiz del listado
+  parentId?: string | null;
 };
 
 // extendido con sourceUrl usado para voz: el CaptureBar sube el audio al bucket

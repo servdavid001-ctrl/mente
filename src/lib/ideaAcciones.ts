@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 import { mapIdeaRow, SELECT_IDEA } from '@/lib/ideas';
 import { MAX_TEXTO } from '@/lib/biblioteca';
 import { esUuid } from '@/lib/foco';
+import { validarMover } from '@/lib/paginas';
 import type { Idea } from '@/lib/types';
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
@@ -68,6 +69,22 @@ export async function aplicarCambio(
     const { data, error } = await supabase
       .from('ideas')
       .update(cambios)
+      .eq('id', id)
+      .select(SELECT_IDEA)
+      .single();
+    if (error) throw error;
+    return { idea: mapIdeaRow(data) };
+  }
+  // modulo 13: mover la idea a otra pagina del mismo proyecto (PUT parent_id;
+  // null = raiz). valida padre propio, profundidad max 3 y sin ciclos
+  if ('parent_id' in body) {
+    const padreId = body.parent_id;
+    if (padreId !== null && !esUuid(padreId)) return 'invalido';
+    const resultado = await validarMover(supabase, id, padreId as string | null);
+    if (!resultado.ok) return { error: resultado.error, status: 400 };
+    const { data, error } = await supabase
+      .from('ideas')
+      .update({ parent_id: padreId })
       .eq('id', id)
       .select(SELECT_IDEA)
       .single();

@@ -3,6 +3,7 @@ import { createClient } from '@/utils/supabase/server';
 import { mapIdeaRow, SELECT_IDEA } from '@/lib/ideas';
 import { MAX_TEXTO } from '@/lib/biblioteca';
 import { esUuid } from '@/lib/foco';
+import { validarAnidamiento } from '@/lib/paginas';
 import type { Idea } from '@/lib/types';
 
 const MAX_URL = 2048;
@@ -14,6 +15,22 @@ export async function GET(request: Request) {
     if (!user) return NextResponse.json({ error: 'No autenticado' }, { status: 401 });
 
     const url = new URL(request.url);
+    const parent = url.searchParams.get('parent');
+    // modulo 13: ?parent=<uuid> lista los hijos directos (un nivel, no
+    // recursivo) del usuario via RLS, ordenados por created_at ascendente
+    if (parent !== null) {
+      if (!esUuid(parent)) {
+        return NextResponse.json({ error: 'Datos invalidos' }, { status: 400 });
+      }
+      const { data, error: errorHijos } = await supabase
+        .from('ideas')
+        .select(SELECT_IDEA)
+        .eq('parent_id', parent)
+        .eq('archivada', false)
+        .order('created_at', { ascending: true });
+      if (errorHijos) throw errorHijos;
+      return NextResponse.json({ ideas: (data ?? []).map(mapIdeaRow) });
+    }
     const estado = url.searchParams.get('estado');
     const pideArchivadas = url.searchParams.get('archivadas') === '1';
     // todas=1: incluye archivadas (el detalle va dentro de cada fila)
@@ -123,8 +140,18 @@ async function validarDestino(
   if (typeof bodyObj !== 'object' || bodyObj === null) return {};
   if (bodyObj.estado === undefined && bodyObj.destino === undefined) return {};
 
-  const destino = bodyObj.destino as { proyecto_id?: unknown } | undefined;
+  const destino = bodyObj.destino as
+    | { proyecto_id?: unknown; parent_id?: unknown }
+    | undefined;
   if (destino !== undefined && (typeof destino !== 'object' || destino === null)) return null;
+  // modulo 13: destino { parent_id } crea la idea como subpagina del padre
+  if (destino?.parent_id !== undefined) {
+    return destinoSubpagina(
+      supabase,
+      bodyObj as { estado?: unknown },
+      destino.parent_id
+    );
+  }
   const proyectoId = destino?.proyecto_id;
   if (proyectoId === undefined && bodyObj.estado !== undefined) return null; // estado sin proyecto
   if (typeof proyectoId !== 'string' || !esUuid(proyectoId)) return null;
@@ -142,4 +169,22 @@ async function validarDestino(
     return { proyecto_id: proyectoId, estado: bodyObj.estado };
   }
   return { proyecto_id: proyectoId };
+}
+
+/** destino { parent_id } (modulo 13): el padre debe existir para el usuario y
+ * admitir profundidad <= 3; la idea hereda el proyecto del padre y su estado
+ * viene obligado en el body (una subpagina nace dentro de un bloque del panel) */
+async function destinoSubpagina(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  bodyObj: { estado?: unknown },
+  parentId: unknown
+): Promise<Record<string, unknown> | null> {
+  if (bodyObj.estado !== 'proyecto' && bodyObj.estado !== 'investigacion') return null;
+  const anidado = await validarAnidamiento(supabase, parentId);
+  if (anidado === null) return null;
+  return {
+    parent_id: anidado.parent_id,
+    proyecto_id: anidado.proyecto_id,
+    estado: bodyObj.estado
+  };
 }

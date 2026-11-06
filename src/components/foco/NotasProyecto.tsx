@@ -5,12 +5,14 @@ import ComposerNota from './ComposerNota';
 import ListaNotas from './ListaNotas';
 import type { Idea } from '@/lib/types';
 
-/** libreta del proyecto (modulo 12): bloques ligeros, composer inline y
- * movimiento interno del propio proyecto. El proyecto nunca importa ideas
- * desde la Bandeja (la entrada es solo escribir aqui directamente). */
+/** libreta del proyecto (modulo 12 + 13): bloques ligeros, composer inline y
+ * movimiento interno del propio proyecto. El tap de una nota abre su PAGINA
+ * con subpaginas (onAbrir); el proyecto nunca importa ideas de la Bandeja. */
 export default function NotasProyecto(props: {
   ideas: Idea[];
   onNueva: (texto: string) => Promise<void>;
+  onAbrir?: (idea: Idea) => void;
+  hijosPorIdea?: Record<string, number>;
 }) {
   const [componiendo, setComponiendo] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -51,7 +53,15 @@ export default function NotasProyecto(props: {
         </p>
       ) : null}
 
-      {props.ideas.length === 0 ? <LibretaVacia /> : <ListaNotas ideas={props.ideas} />}
+      {props.ideas.length === 0 ? (
+        <LibretaVacia />
+      ) : (
+        <ListaNotas
+          ideas={props.ideas}
+          onAbrir={props.onAbrir}
+          hijosPorIdea={props.hijosPorIdea}
+        />
+      )}
     </section>
   );
 }
