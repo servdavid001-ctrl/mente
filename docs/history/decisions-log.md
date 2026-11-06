@@ -58,3 +58,7 @@
 - Desviacion justificada del plan: el MCP Supabase global apunta a otro proyecto (`tlkvqcgkrkmtcvutjcbz`); la migracion se aplico via Management API contra `vgtbznppcthyitnzgmlt` y se registro en `supabase_migrations` (version 0009). El MCP sigue pendiente de reinicio.
 - Endurecimiento aplicado tras audit: `credencialesUsuario` cae a env si falla la lectura admin (no tumba `/api/ai/*`); errores 500 genericos en la ruta nueva; `Cache-Control: private, no-store`; timeout 30s en chat.
 - `.eslintignore` (mobile/, builds, downloads, scripts): el lint vuelve a 0 errores; era el unico fallo del gate local.
+
+## 2026-11-06 - Brief David de direccion post-v1 (clasificacion en Versión 2)
+- Brief completo de David (agente con MCPs, coach de foco, memoria import, fotos/videos bandeja, redesign biblioteca, IA externa no-determinista, foco UI) registrado en la seccion Versión 2 del FOUNDATION con la regla permanente (v1 no crece). Items marcados "clasificacion pendiente" esperan decision de David antes de planearse.
+- Afecta: nada en v1 hoy. La UI de foco simple (proyectos + progreso + tabs tareas/contexto/investigacion/archivos) y el filtro de bandeja (pendientes del dia + sin categorizar) quedan como candidatos de refinamiento v1 a planear por pedido explicito.

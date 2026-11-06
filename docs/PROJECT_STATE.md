@@ -10,10 +10,15 @@ Siguiente: **sesión de planificación agente/MCPs/AI + módulo 12 (extensión v
 — agenda lista en `docs/handoffs/sesion-agente-mcps-agenda.md`. Esperando la
 llamada de David.
 
-## Pendientes de decisión David (clasificación, brief 2026-11-06)
-- Fotos en bandeja: ¿v1? (alimenta "archivos" del proyecto y portadas de tarjetas)
-- Coach de foco: ¿extensión del copiloto v1 o v2?
-- 2 respuestas cerradas: los 7 items de tarjetas aprobados ("si todo") y libreta dual dual confirmada.
+## Pendientes de decisión David
+- **Módulos 12-13 (draft en docs/handoffs/modulo12-13-flujos-paginas-spec.md)**:
+  M12 = dirección de flujos (quitar pull inverso de libreta, asegurar
+  biblioteca→proyecto). M13 = páginas/subpáginas estilo Notion — TENSION con
+  FOUNDATION (jerarquías): propuesto max 3 niveles + breadcrumb; falta su decisión
+  (profundidad, modelo LIGHT vs NOTION, ¿REA a Notion?).
+- Fotos en bandeja: ¿v1? · Coach de foco: ¿v1-copiloto o v2?
+- **Sesión planificación agente/MCPs/AI + módulo extensión v2**: agenda lista en
+  `docs/handoffs/sesion-agente-mcps-agenda.md` — espera su llamada.
 
 ## Distribución
 - Extension: https://mente-ten-iota.vercel.app/downloads/mente-extension.zip (SOLO en /ajustes; regla módulo 11)

@@ -61,6 +61,12 @@ Mis ideas se dispersan entre WhatsApp, Notion, Todoist y reels guardados: las ca
 ## Versión 2 (pospuesta, NO es v1)
 - Auditoría de tiempo: ver en qué has gastado tu tiempo en el teléfono y en el navegador, contrastado con el Panel de Foco.
 - Conector MCP: conectarse a cualquier AI externa vía MCP y usarla como herramienta.
+- **Agente de Mente con MCP de opencode + asistente AI (Muse/Grok)** — el comportamiento que David definió (2026-11-06): el agente solo maneja info DENTRO de Mente; distingue qué hace él vs. qué necesitan opencode/assistant; les deja la info ya preparada en el formato correcto para cada uno; detecta cruces de tareas y conflictos de recursos/tiempos; avisa honestamente "con estos recursos y este tiempo, mejor opción: A o B" (enfoque en soluciones, no quejas).
+- **Importar memoria**: traer historial/memoria desde Claude y ChatGPT y texto plano de chats de WhatsApp al Inbox de Mente.
+- **Bandeja con fotos y videos** (clasificación pendiente: fotos = completaría punto #1; video = v2 claro).
+- **Coach de foco**: AI activa que pregunta cómo vas, con capacidad resolutiva y consultiva para planificación (clasificación pendiente: ¿extensión del copiloto v1 o v2?).
+- **Biblioteca redesign**: "aquí es todo diseño" — David definirá la interfaz.
+- **Comportamiento no-determinista de la AI externa** (módulo 10): equilibrio determinista↔exploratorio según caso — David definirá cuando toque.
 - Programador/Activador: agendar tareas (una vez o recurrentes) que el sistema dispara contra la AI conectada — el sistema adolescente/inicia/estimula: al llegar la hora, carga el contexto y lanza a la AI para que ejecute. Nota de diseño: dos modos configurables — con aprobación (default) o autónomo para tareas seguras.
 - Exponer el sistema como servidor MCP hacia otras herramientas.
 - Captura por WhatsApp.
