@@ -1,8 +1,8 @@
 'use client';
 
-/** acciones de ideas de la libreta dual (modulo 11): composer directo
- * (POST /api/ideas con destino+estado) y traer desde la Bandeja
- * (PUT /api/ideas/[id] con proyectoId+estado). Ambas recargan el detalle. */
+/** acciones de ideas del proyecto (modulo 12): composer directo que crea la
+ * idea ya dentro del proyecto (POST /api/ideas con destino+estado) y recarga
+ * el detalle. El proyecto nunca trae ideas desde la Bandeja. */
 export function useAccionesIdeas(proyectoId: string, recargar: () => Promise<void>) {
   async function crearIdea(texto: string, estado: 'proyecto' | 'investigacion'): Promise<void> {
     const res = await fetch('/api/ideas', {
@@ -19,15 +19,5 @@ export function useAccionesIdeas(proyectoId: string, recargar: () => Promise<voi
     await recargar();
   }
 
-  async function moverIdea(ideaId: string): Promise<void> {
-    const res = await fetch(`/api/ideas/${ideaId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ proyectoId, estado: 'proyecto' })
-    });
-    if (!res.ok) throw new Error(`No pudimos mover la idea (${String(res.status)}).`);
-    await recargar();
-  }
-
-  return { crearIdea, moverIdea };
+  return { crearIdea };
 }

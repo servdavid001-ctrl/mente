@@ -3,7 +3,8 @@
 import { useState } from 'react';
 
 /** composer inline de la libreta (modulo 11): guarda via caller, que crea la
- * idea con estado 'proyecto' + proyecto_id. Guardar mantiene el foco visual. */
+ * idea con estado 'proyecto' + proyecto_id. Guardar mantiene el foco visual.
+ * Modulo 12: el copy deja claro que la idea vive escrita aqui directamente. */
 export default function ComposerNota(props: {
   ocupado: boolean;
   onGuardar: (texto: string) => Promise<void>;
@@ -37,6 +38,7 @@ export default function ComposerNota(props: {
         aria-label="Texto de la nueva nota"
         className="w-full rounded-card border border-border bg-surface px-3 py-2 text-[14px] text-text placeholder:text-text-soft"
       />
+      <p className="text-[12px] text-text-soft">Se queda escrito aqui directamente.</p>
       <div className="flex gap-2">
         <button
           type="submit"

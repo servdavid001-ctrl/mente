@@ -3,55 +3,29 @@
 import { useState } from 'react';
 import ComposerNota from './ComposerNota';
 import ListaNotas from './ListaNotas';
-import SelectorBandeja from './SelectorBandeja';
 import type { Idea } from '@/lib/types';
 
-/** libreta del proyecto (modulo 11, spec Notas): bloques ligeros, composer
- * inline y mover ideas desde la Bandeja (patro dual aprobado por David). */
+/** libreta del proyecto (modulo 12): bloques ligeros, composer inline y
+ * movimiento interno del propio proyecto. El proyecto nunca importa ideas
+ * desde la Bandeja (la entrada es solo escribir aqui directamente). */
 export default function NotasProyecto(props: {
   ideas: Idea[];
   onNueva: (texto: string) => Promise<void>;
-  onMover: (idea: Idea) => Promise<void>;
 }) {
   const [componiendo, setComponiendo] = useState(false);
-  const [entrada, setEntrada] = useState(false);
   const [enviando, setEnviando] = useState(false);
-  const [moviendoId, setMoviendoId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  async function mover(idea: Idea) {
-    if (moviendoId !== null) return;
-    setMoviendoId(idea.id);
-    setError(null);
-    try {
-      await props.onMover(idea);
-      setEntrada(false);
-    } catch {
-      setError('No se pudo mover la idea. Reintenta.');
-    } finally {
-      setMoviendoId(null);
-    }
-  }
 
   return (
     <section aria-label="Libreta del proyecto" className="space-y-2">
-      <div className="flex gap-2">
-        <button
-          type="button"
-          aria-expanded={componiendo}
-          onClick={() => setComponiendo((v) => !v)}
-          className="h-10 flex-1 rounded-card bg-accent text-[14px] font-semibold text-white"
-        >
-          Nueva nota
-        </button>
-        <button
-          type="button"
-          onClick={() => setEntrada(true)}
-          className="h-10 flex-1 rounded-card border border-border text-[14px] font-semibold text-text"
-        >
-          Traer de la Bandeja
-        </button>
-      </div>
+      <button
+        type="button"
+        aria-expanded={componiendo}
+        onClick={() => setComponiendo((v) => !v)}
+        className="h-10 w-full rounded-card bg-accent text-[14px] font-semibold text-white"
+      >
+        Nueva nota
+      </button>
 
       {componiendo ? (
         <ComposerNota
@@ -78,14 +52,6 @@ export default function NotasProyecto(props: {
       ) : null}
 
       {props.ideas.length === 0 ? <LibretaVacia /> : <ListaNotas ideas={props.ideas} />}
-
-      {entrada ? (
-        <SelectorBandeja
-          onCerrar={() => setEntrada(false)}
-          ocupadoId={moviendoId}
-          onMover={mover}
-        />
-      ) : null}
     </section>
   );
 }
@@ -93,7 +59,7 @@ export default function NotasProyecto(props: {
 function LibretaVacia() {
   return (
     <p className="text-[13px] text-text-soft">
-      La libreta esta vacia. Escribe la primera nota o trae una de la Bandeja.
+      La libreta esta vacia. Escribe la primera nota aqui directamente.
     </p>
   );
 }

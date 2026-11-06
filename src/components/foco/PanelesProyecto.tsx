@@ -20,7 +20,6 @@ export default function PanelesProyecto(props: {
   investigaciones: Idea[];
   objetivos: Objetivo[];
   crearIdea: (texto: string, estado: 'proyecto' | 'investigacion') => Promise<void>;
-  moverIdea: (ideaId: string) => Promise<void>;
 }) {
   return (
     <div className="space-y-4 pt-2">
@@ -42,7 +41,6 @@ export default function PanelesProyecto(props: {
           <NotasProyecto
             ideas={props.notas}
             onNueva={(texto) => props.crearIdea(texto, 'proyecto')}
-            onMover={(idea) => props.moverIdea(idea.id)}
           />
         ) : null}
         {props.tab === 'investigacion' ? (
