@@ -65,10 +65,26 @@ export type Conexion = {
 export type TipoEntidad = 'autor' | 'libro' | 'persona' | 'lugar' | 'marca' | 'concepto';
 export type Entidad = { nombre: string; tipo: TipoEntidad };
 
-/** shape de entidades jsonb: lista + minuta aceptada (ai_minuta, base mod 7) */
+/** shape de entidades jsonb: lista + minuta aceptada (ai_minuta, base mod 7)
+ * + fichas externas aceptadas (externa, modulo 10); preservar keys ajena */
 export type EntidadesItem = {
   lista: Entidad[];
   ai_minuta?: { pasos: string[]; guardada: string };
+  externa?: ItemExterno[];
+};
+
+/** ficha de conocimiento externo (modulo 10 #5): catalogs publicos + AI */
+export type FuenteExterna = 'google_books' | 'openlibrary' | 'ai';
+
+export type ItemExterno = {
+  fuente: FuenteExterna;
+  titulo: string;
+  autor: string | null;
+  anio: string | null;
+  coverUrl: string | null;
+  url: string | null;
+  /** frase de 1 linea de la AI personalizada a la idea (null en sinonimos) */
+  frase: string | null;
 };
 
 export type SugerenciaEstado =
@@ -77,7 +93,7 @@ export type SugerenciaEstado =
   | 'descartada'
   | 'descartada_permanente';
 
-export type SugerenciaTipo = 'categoria' | 'conexion' | 'entidades' | 'minuta';
+export type SugerenciaTipo = 'categoria' | 'conexion' | 'entidades' | 'minuta' | 'externa';
 
 export type SugerenciaPayloadCategoria = {
   nombreColeccion: string;
@@ -92,6 +108,8 @@ export type SugerenciaPayloadConexion = {
 };
 
 export type SugerenciaPayloadMinuta = { pasos: string[] };
+
+export type SugerenciaPayloadExterna = { items: ItemExterno[]; generado: string };
 
 export type SugerenciaSheet = {
   sugerenciaId: string;

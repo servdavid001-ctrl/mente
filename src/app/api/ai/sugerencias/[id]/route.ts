@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { guardarMinuta } from '@/lib/ai/sugerencias';
+import { guardarExternas } from '@/lib/ai/externa';
+import { validarItemsExterna } from '@/lib/externas';
 
 /**
  * PUT /api/ai/sugerencias/[id] (modulo 3): accion del usuario sobre una
@@ -56,6 +58,22 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         String(previa.idea_id),
         (pasos as unknown[]).filter((p): p is string => typeof p === 'string').slice(0, 10)
       );
+    }
+    if (estado === 'aceptada' && previa.tipo === 'externa') {
+      /* items seleccionados en el sheet o todos los del payload; SOLO aqui se
+       * escriben en ideas.entidades.externa (spec modulo 10, nada automatico) */
+      const payload = (previa.payload ?? {}) as { items?: unknown };
+      const delCuerpo = body?.items;
+      const crudos = Array.isArray(delCuerpo)
+        ? delCuerpo
+        : Array.isArray(payload.items)
+          ? payload.items
+          : [];
+      const items = validarItemsExterna(crudos.slice(0, 20));
+      if (items.length === 0) {
+        return NextResponse.json({ error: 'Datos invalidos' }, { status: 400 });
+      }
+      await guardarExternas(supabase, String(previa.idea_id), items);
     }
     const { error } = await supabase
       .from('sugerencias')

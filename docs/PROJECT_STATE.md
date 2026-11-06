@@ -1,14 +1,19 @@
 # PROJECT_STATE — Mente (provisional)
-Última actualización: 2026-11-06
+Última actualización: 2026-11-06 (módulo 9)
 
 ## Estado actual
-**v1 funcional + clave AI por usuario en /ajustes (módulo 8).** Build verde, tsc/lint en 0 errores, security audit APROBADO, 0 vulnerabilidades npm. La AI se activa cuando el usuario guarda su clave de OpenRouter u OpenAI en Ajustes (antes solo por env).
-Siguiente: David pega su clave en /ajustes y se valida AI real en producción; después higiene asistida (#11) y tests.
+**Módulo 9 (higiene asistida) en producción** — `86cca96` en main, deploy verificado
+(`/api/higiene` 401 sin sesión, `/higiene` 307 → login). Build/tsc/lint verificados por el
+CTO; security audit APROBADO. Clave AI de David guardada y validada en `ai_credenciales`
+(1 registro, 2026-11-06). QA en vivo del módulo 9 y test real de AI pendientes de sesión.
+Siguiente: QA en vivo (higiene + AI con clave real) → conexiones con conocimiento
+externo (#5).
 
 ## Distribución
 - Extension: https://mente-ten-iota.vercel.app/downloads/mente-extension.zip
 - APK (debug, Capacitor): https://github.com/servdavid001-ctrl/mente/releases/tag/apk-1
 - Panel de ajustes: /ajustes (clave AI, tema, extension, datos)
+- Higiene: /higiene (card acceso en Bandeja)
 
 ## Producción
 - URL: https://mente-ten-iota.vercel.app
@@ -27,10 +32,12 @@ Siguiente: David pega su clave en /ajustes y se valida AI real en producción; d
 | 6 | Share-target móvil + service worker | /compartir (POST), public/sw.js | ✓ |
 | 7 | Tareas (idea/plan→tareas, Hoy) | /api/tareas[/id], /api/ideas/[id]/tareas | ✓ |
 | 8 | Clave AI por usuario | /ajustes, /api/ajustes/ai | ✓ QA prod PASS |
+| 9 | Higiene asistida | /higiene, /api/higiene | ✓ deploy; QA en vivo pendiente |
 
 ## Deuda abierta
-- **AI sin probar en prod con clave real**: el flujo existe; falta que David guarde su clave en /ajustes y se verifique analizar/explicar.
-- Higiene asistida del FOUNDATION (#11): no existe (solo guardián a nivel proyecto).
+- **QA en vivo módulo 9 en prod**: /higiene con datos >14 días, archivar/marcar hecha/eliminar (doble confirm) — falta sesión de David (password de admin@mente.local cambió; la copia en /tmp está obsoleta).
+- **Test real de AI con clave de David**: clave guardada y validada al guardar (diseño módulo 8); falta probar analizar/explicar/sugerencias con respuesta real en prod.
+- Higiene: 3 queries del GET sin `.limit()` (hardening del audit); badge contador en nav bajo demanda.
 - Conexiones con conocimiento externo (#5): no implementado (solo keywords internas).
 - Rate limit de `/api/captura`, `/compartir` y de guardar clave (Map en memoria, por instancia).
 - Magic bytes de imágenes (hoy solo MIME declarado).
@@ -49,6 +56,7 @@ Siguiente: David pega su clave en /ajustes y se valida AI real en producción; d
 (ninguno)
 
 ## Últimas decisiones
+- 2026-11-06: Módulo 9: higiene asistida (#11). Detecta por proxy `updated_at` (>14 días): bandeja vieja, biblioteca apartada, tareas pendientes viejas, colecciones vacías. Solo sugiere; acciones = rutas existentes (PUT/DELETE). Caps 20/tipo. Security audit APROBADO, deploy OK.
 - 2026-11-06: Módulo 8: clave AI por usuario en /ajustes. Proveedor único (OpenRouter/OpenAI), validación contra endpoint autenticado, AES-256-GCM con AAD=user_id (v2, lee v1), tabla `ai_credenciales` RLS sin policies + revoke (solo service_role), `AI_KEY_SECRET`, fallback a env en dev.
 - 2026-11-06: `.eslintignore` añadido (mobile/, builds, downloads): lint vuelve a 0 errores.
 - 2026-11-05: UI v2: sidebar desktop, grid 2/3/4, tema claro/oscuro/sistema, /ajustes, export JSON, ZIP y APK.
@@ -56,7 +64,7 @@ Siguiente: David pega su clave en /ajustes y se valida AI real en producción; d
 - 2026-11-05: Módulos 4-7 sin IA: copiloto por líneas, captura por token, share-target solo POST, tareas desde minuta/líneas.
 
 ## Alertas activas
-- **Pegar la clave AI en /ajustes** para activar el módulo 3 en producción (David).
+- **Password de admin@mente.local cambió**: necesito la actual (o demo session) para QA en vivo — higiene + test real de AI con tu clave.
 - **MCP Supabase mal apuntado** (ver deuda): no usar para migraciones hasta reiniciar opencode.
 - Código de invitación activo (`REGISTRO_INVITE_CODE`): rotarlo si se filtra.
 - Probar extensión y share-target en dispositivo real.

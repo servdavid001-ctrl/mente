@@ -11,6 +11,7 @@ import AccionesDetalle from './AccionesDetalle';
 import { HeroItem, VisualNota } from './HeroItem';
 import NotaEditor from './NotaEditor';
 import ExpansionItem from './ExpansionItem';
+import ExternaPanel from '@/components/ai/ExternaPanel';
 import BotonCrearTareas from './BotonCrearTareas';
 import ExplicarFAB from '@/components/ai/ExplicarFAB';
 import ExplicarPanel, { type Turno } from '@/components/ai/ExplicarPanel';
@@ -502,6 +503,17 @@ export default function DetalleItem(props: { ideaId: string; email?: string }) {
                   )
                 }
                 onNotaAppend={(texto) => void anexarANota(texto)}
+              />
+
+              <ExternaPanel
+                idea={idea}
+                onIdea={(guardada) =>
+                  setLista((prev) =>
+                    prev.some((w) => w.id === guardada.id)
+                      ? prev.map((w) => (w.id === guardada.id ? guardada : w))
+                      : prev
+                  )
+                }
               />
             </div>
 

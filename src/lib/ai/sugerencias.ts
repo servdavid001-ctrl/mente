@@ -80,6 +80,7 @@ export async function guardarMinuta(
     .from('ideas')
     .update({
       entidades: {
+        ...previa, /* preserva otras keys del jsonb (ej: externa del modulo 10) */
         lista: Array.isArray(previa.lista) ? previa.lista : [],
         ai_minuta: { pasos, guardada: new Date().toISOString() }
       }
