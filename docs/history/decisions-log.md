@@ -62,3 +62,9 @@
 ## 2026-11-06 - Brief David de direccion post-v1 (clasificacion en Versión 2)
 - Brief completo de David (agente con MCPs, coach de foco, memoria import, fotos/videos bandeja, redesign biblioteca, IA externa no-determinista, foco UI) registrado en la seccion Versión 2 del FOUNDATION con la regla permanente (v1 no crece). Items marcados "clasificacion pendiente" esperan decision de David antes de planearse.
 - Afecta: nada en v1 hoy. La UI de foco simple (proyectos + progreso + tabs tareas/contexto/investigacion/archivos) y el filtro de bandeja (pendientes del dia + sin categorizar) quedan como candidatos de refinamiento v1 a planear por pedido explicito.
+
+## 2026-11-06 - Modulos 12-13 aprobados (flujos + paginas notion)
+- M12 APROBADO por David ("ok" a todo): direccion unica Bandeja->Proyecto,
+  directo en proyecto, o Biblioteca->Proyecto. Pull inverso eliminado.
+- M13 paginas/subpaginas: modelo LIGHT (ideas con parent_id, self-ref),
+  profundidad max 3 niveles, breadcrumbs visibles,.REA a Notion saltado.
