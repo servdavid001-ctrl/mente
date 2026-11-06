@@ -70,10 +70,27 @@ export type ObjetivoRow = {
 
 export type IdeaConteoRow = { proyecto_id?: string | null; archivada?: boolean | null };
 export type ObjetivoConteoRow = { proyecto_id?: string | null; estado?: string | null };
+export type TareaConteoRow = { proyecto_id?: string | null; estado?: string | null };
+
+/** hechas (estado 'hecha') y total por proyecto */
+export function contarTareas(filas: TareaConteoRow[]): Record<string, { hechas: number; total: number }> {
+  const porProyecto: Record<string, { hechas: number; total: number }> = {};
+  for (const fila of filas) {
+    if (typeof fila.proyecto_id !== 'string' || fila.proyecto_id.length === 0) continue;
+    const conteo = (porProyecto[fila.proyecto_id] ??= { hechas: 0, total: 0 });
+    conteo.total += 1;
+    if (fila.estado === 'hecha') conteo.hechas += 1;
+  }
+  return porProyecto;
+}
 
 export function mapProyectoRow(
   row: ProyectoRow,
-  counts: { ideas: number; objetivosActivos: number }
+  counts: {
+    ideas: number;
+    objetivosActivos: number;
+    tareas?: { hechas: number; total: number };
+  }
 ): Proyecto {
   return {
     id: String(row.id),
@@ -85,7 +102,9 @@ export function mapProyectoRow(
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at ?? row.created_at),
     ideasCount: counts.ideas,
-    objetivosActivos: counts.objetivosActivos
+    objetivosActivos: counts.objetivosActivos,
+    tareasHechas: counts.tareas?.hechas ?? 0,
+    tareasTotal: counts.tareas?.total ?? 0
   };
 }
 

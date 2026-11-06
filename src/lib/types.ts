@@ -153,6 +153,9 @@ export type Proyecto = {
   ideasCount: number;
   /** objetivos con estado 'activo' */
   objetivosActivos: number;
+  /** tareas del proyecto (modulo 11: progreso de la tarjeta; null = sin conteo) */
+  tareasHechas?: number;
+  tareasTotal?: number;
 };
 
 export type ObjetivoEstado = 'activo' | 'logrado' | 'archivado';

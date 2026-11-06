@@ -3,11 +3,13 @@ import { createClient } from '@/utils/supabase/server';
 import {
   contarIdeas,
   contarObjetivosActivos,
+  contarTareas,
   mapProyectoRow,
   validarProyectoNuevo,
   type IdeaConteoRow,
   type ObjetivoConteoRow,
-  type ProyectoRow
+  type ProyectoRow,
+  type TareaConteoRow
 } from '@/lib/foco';
 import { COLS_PROYECTO, leerJson } from '@/lib/focoServer';
 
@@ -24,22 +26,26 @@ export async function GET() {
       .order('created_at', { ascending: true });
     if (error) throw error;
 
-    const [rIdeas, rObjetivos] = await Promise.all([
+    const [rIdeas, rObjetivos, rTareas] = await Promise.all([
       supabase.from('ideas').select('proyecto_id,archivada'),
-      supabase.from('objetivos').select('proyecto_id,estado')
+      supabase.from('objetivos').select('proyecto_id,estado'),
+      supabase.from('tareas').select('proyecto_id,estado')
     ]);
     if (rIdeas.error) throw rIdeas.error;
     if (rObjetivos.error) throw rObjetivos.error;
+    if (rTareas.error) throw rTareas.error;
 
     const { porProyecto, sinProyecto } = contarIdeas(
       (rIdeas.data ?? []) as IdeaConteoRow[]
     );
     const activos = contarObjetivosActivos((rObjetivos.data ?? []) as ObjetivoConteoRow[]);
+    const tareas = contarTareas((rTareas.data ?? []) as TareaConteoRow[]);
 
     const proyectos = ((filas ?? []) as ProyectoRow[]).map((row) =>
       mapProyectoRow(row, {
         ideas: porProyecto[String(row.id)] ?? 0,
-        objetivosActivos: activos[String(row.id)] ?? 0
+        objetivosActivos: activos[String(row.id)] ?? 0,
+        tareas: tareas[String(row.id)] ?? { hechas: 0, total: 0 }
       })
     );
 
