@@ -8,6 +8,7 @@ import {
   cargarProyecto,
   crearObjetivo
 } from '@/lib/foco';
+import { sincronizarHijos, upsertIdeas } from '@/lib/ideasTree';
 import type { Idea, Objetivo, Proyecto } from '@/lib/types';
 
 const ERROR_CARGA = 'No pudimos cargar el proyecto. Reintentar';
@@ -26,16 +27,22 @@ export function useDetalleProyecto(proyectoId: string) {
   const [plegando, setPlegando] = useState(false);
   const [objetivoOcupado, setObjetivoOcupado] = useState<string | null>(null);
 
-  const cargar = useCallback(async () => {
+  const cargar = useCallback(async (enFondo: boolean = false) => {
     setCargando(true);
-    setError(undefined);
     try {
       const datos = await cargarProyecto(proyectoId);
       setProyecto(datos.proyecto);
       setObjetivos(datos.objetivos);
       setIdeas(datos.ideas);
+      setError(undefined);
     } catch {
-      setError(ERROR_CARGA);
+      // fix P1: en fondo (tras guardar OK) el fallo es toast no bloqueante; en
+      // carga inicial/reintento conserva el banner error con reintentar
+      if (enFondo) {
+        setToast('No pudimos actualizar el detalle. Reintenta.');
+      } else {
+        setError(ERROR_CARGA);
+      }
     } finally {
       setCargando(false);
     }
@@ -120,6 +127,23 @@ export function useDetalleProyecto(proyectoId: string) {
     }
   }
 
+  // fix P1 2026-11-07: insert inmediato con la idea confirmada por el server
+  // (POST 201) y reemplazo del subarbol de la pagina con el GET ?parent fresco.
+  // Duplicados imposibles por id; el tree recomputa hijas/badges al instante
+  function agregarIdea(idea: Idea): void {
+    setIdeas((prev) => upsertIdeas(prev, [idea]));
+  }
+
+  function sincronizarHijosPagina(parentId: string, hijos: Idea[]): void {
+    setIdeas((prev) => sincronizarHijos(prev, parentId, hijos));
+  }
+
+  /** PUT parent_id confirmado: reparenta la idea en el arbol local (la lista
+   * de origen y el badge del padre nuevo se recomputan al instante) */
+  function moverIdeaLocal(ideaId: string, parentId: string | null): void {
+    setIdeas((prev) => prev.map((idea) => (idea.id === ideaId ? { ...idea, parentId } : idea)));
+  }
+
   return {
     proyecto,
     objetivos,
@@ -130,6 +154,9 @@ export function useDetalleProyecto(proyectoId: string) {
     plegando,
     objetivoOcupado,
     cargar,
+    agregarIdea,
+    sincronizarHijosPagina,
+    moverIdeaLocal,
     alternarPlegado,
     agregarObjetivo,
     cambiarEstado,

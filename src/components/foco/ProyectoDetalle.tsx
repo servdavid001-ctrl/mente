@@ -22,7 +22,7 @@ export default function ProyectoDetalle(props: { proyectoId: string; email?: str
   const proyecto = detalle.proyecto;
   const [tab, setTab] = useState<TabProyecto>('notas');
   const [plegando, setPlegando] = useState(false);
-  const acciones = useAccionesIdeas(props.proyectoId, detalle.cargar);
+  const acciones = useAccionesIdeas(props.proyectoId, detalle);
   const paginas = usePaginasProyecto(detalle.ideas);
 
   // nivel 0 (modulo 13): solo ideas raiz; las subpaginas viven por parent_id
@@ -64,8 +64,10 @@ export default function ProyectoDetalle(props: { proyectoId: string; email?: str
       }
     >
       <div className="mx-auto w-full max-w-[64rem]">
+        {/* fix P1: durante la recarga en fondo la vista sigue montada (sin flash
+         * ni composer cerrado de mas); el esqueleto solo cubre la carga inicial */}
         {detalle.cargando && !proyecto ? <EsqueletoDetalle /> : null}
-        {detalle.cargando ? null : (
+        {detalle.cargando && proyecto ? null : (
           <div className={detalle.error || detalle.toast ? 'mb-3' : undefined}>
             <BannerAvisoFoco
               error={detalle.error}
@@ -74,7 +76,7 @@ export default function ProyectoDetalle(props: { proyectoId: string; email?: str
             />
           </div>
         )}
-        {!detalle.cargando && !detalle.error && proyecto ? (
+        {!detalle.error && proyecto ? (
           <InterruptorVistas
             proyecto={proyecto}
             paginas={paginas}

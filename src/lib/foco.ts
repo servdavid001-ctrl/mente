@@ -442,6 +442,26 @@ export function listarHijos(parentId: string): Promise<Idea[]> {
   ).then((datos) => datos.ideas);
 }
 
+/** crea la idea texto como raiz del proyecto (modulo 11): devuelve la idea
+ * confirmada por el server (POST 201) para insertarla al arbol del detalle */
+export async function crearIdeaProyecto(
+  proyectoId: string,
+  texto: string,
+  estado: EstadoPanel
+): Promise<Idea> {
+  const res = await pedir<{ idea: Idea }>('/api/ideas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      kind: 'texto',
+      text: texto,
+      estado,
+      destino: { proyecto_id: proyectoId }
+    })
+  });
+  return res.idea;
+}
+
 /** crea la idea texto como subpagina: el server hereda el proyecto del padre */
 export async function crearSubpagina(
   parentId: string,
