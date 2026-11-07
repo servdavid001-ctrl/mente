@@ -26,6 +26,7 @@ export default function InterruptorVistas(props: {
   crearIdea: PropsPaneles['crearIdea'];
   crearSubpagina: (texto: string, estado: 'proyecto' | 'investigacion', parentId: string) => Promise<void>;
   moverIdea: (ideaId: string, parentId: string | null) => Promise<void>;
+  guardarCuerpo: (ideaId: string, textoOriginal: string, cuerpo: string) => Promise<void>;
   opcionesDe: (hija: Idea) => OpcionMover[];
 }) {
   const actual = props.paginas.actual;
@@ -59,6 +60,7 @@ export default function InterruptorVistas(props: {
       onIrANivel={props.paginas.irA}
       crearSubpagina={props.crearSubpagina}
       moverIdea={props.moverIdea}
+      guardarCuerpo={props.guardarCuerpo}
     />
   );
 }

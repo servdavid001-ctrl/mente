@@ -144,6 +144,12 @@ export function useDetalleProyecto(proyectoId: string) {
     setIdeas((prev) => prev.map((idea) => (idea.id === ideaId ? { ...idea, parentId } : idea)));
   }
 
+  /** modulo 14: PUT contenido confirmado; el texto del server (cap 2000) pasa
+   * al arbol al instante y el cuerpo se ve "alli debajo" re-renderizado */
+  function actualizarCuerpoIdea(ideaId: string, texto: string): void {
+    setIdeas((prev) => prev.map((idea) => (idea.id === ideaId ? { ...idea, text: texto } : idea)));
+  }
+
   return {
     proyecto,
     objetivos,
@@ -157,6 +163,7 @@ export function useDetalleProyecto(proyectoId: string) {
     agregarIdea,
     sincronizarHijosPagina,
     moverIdeaLocal,
+    actualizarCuerpoIdea,
     alternarPlegado,
     agregarObjetivo,
     cambiarEstado,
