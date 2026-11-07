@@ -2,7 +2,7 @@
 Última actualización: 2026-11-06 (módulo 11)
 
 ## Estado actual
-**Módulo 11 (Foco UI v2) en producción con QA end-to-end PASS.** `c3c7f9b` en main.
+**Módulo 11 (Foco UI v2) en producción con QA end-to-end PASS.** `940f31c` (fix P1 subpaginas) en main.
 Security audit APROBADO (0 críticos, 4 menores). Clave AI de David activa en
 `ai_credenciales` (su usuario). READY de David 2026-11-06 (v1 + higiene + externas).
 Breaf de dirección post-v1 clasificado en Versión 2 del FOUNDATION.
@@ -61,7 +61,7 @@ Siguiente: **SESION DE PLANIFICACION agente/MCPs/AI en curso (David la llamó)**
 - Rotar AI_KEY_SECRET invalida claves (UI pide reingresar); rotar PAT sbp_ visible en logs.
 
 ## Bugs abiertos AHORA
-- **P1 (módulo 13, reporte David 2026-11-07): "Investigación no guarda las subpáginas"** — diagnosticar y arreglar en el próximo build.
+
 - **EME (módulo 13, David): la forma de mostrar/escribir no le gusta** — quiere editor estilo Notion (cursiva, negrita, títulos, checks, fotos = bloques). Alcanza a rehacer el flujo paginas con bloques enriquecidos; planifica tras la sesión de MCPs (la pide David explícitamente).
 
 ## Últimas decisiones

@@ -85,3 +85,11 @@ Cierre: P0 "captura de link" resuelto y verificado. Sin regresiones detectadas.
 - **Causa raíz:** `AppShell.tsx:21` guarda el tab en `useState`; `BottomNav.tsx:56` sólo hace `setTab`; no hay `router.push`/`usePathname`. `AppShell.tsx:40-47` renderiza siempre los children de la página actual y `:50` esconde la CaptureBar según el tab local. `/biblioteca` sólo se alcanza escribiendo la URL.
 - **Evidencia:** `03-nav-biblioteca.png`, `16-nav-desde-biblioteca.png`, `17-foco.png` (en `/tmp/opencode/qa-screens/`); `GET /biblioteca` directo 200 con 4 cards.
 - **Estado:** RESUELTO 2026-11-04. Fix: `BottomNav` usa `next/link` con rutas reales (`/`, `/biblioteca`, `/foco`); `AppShell` eliminó el `useState` y deriva el tab de `activeTab`; nueva ruta `src/app/foco/page.tsx` con guard de sesión. Verificado en producción: login → Biblioteca → Bandeja → Foco con URL y `aria-current` correctos, 0 pageerrors.
+
+## 2026-11-07 — P1: "investigación no guarda las subpáginas" (módulo 13)
+- **Síntoma:** el composer de subpágina dentro de la investigación no mostraba el hijo recién creado; al reescribir se duplicaba.
+- **Causa raiz (cliente, no backend):** único mecanismo de actualización era refetch global silencioso (`useDetalleProyecto.cargar`); la lista de hijos del módulo 13 (`listarHijos`) no se consumía en UI y el resultado del POST (`res.idea`) se descartaba; el catch convertía juga falla de refetch completo en "no se guardó"; y el refetch de fondo desmontaba la vista (flash + composer cerrado).
+- **Fix (`940f31c`):** upsert optimista inmediato + refetch garantizado `?parent=` + errors visibles con introspección + fondo sin desmontar la vista. Backend verificado intacto (probe prod 201/GET ✓ antes y después).
+- **Regla del módulo (docs/modules/paginas.md):** cada acción de escritura debe
+  incluir una actualización local (optimista) + un refetch controlado; jamás
+  fiar la única señal visual al refetch global silencioso.
