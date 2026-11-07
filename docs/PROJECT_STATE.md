@@ -6,7 +6,7 @@
 Security audit APROBADO (0 críticos, 4 menores). Clave AI de David activa en
 `ai_credenciales` (su usuario). READY de David 2026-11-06 (v1 + higiene + externas).
 Breaf de dirección post-v1 clasificado en Versión 2 del FOUNDATION.
-Siguiente: **sesión de planificación agente/MCPs/AI + módulo extensión v2** — agenda en `docs/handoffs/sesion-agente-mcps-agenda.md`. Modulos 12+13 entregados. Notificado a David.
+Siguiente: **SESION DE PLANIFICACION agente/MCPs/AI en curso (David la llamó)** — bug P1 investigacion/subpaginas + editor Notion quedan para el build siguiente.
 
 ## Pendientes de decisión David
 - **Módulos 12-13 (draft en docs/handoffs/modulo12-13-flujos-paginas-spec.md)**:
@@ -61,7 +61,8 @@ Siguiente: **sesión de planificación agente/MCPs/AI + módulo extensión v2** 
 - Rotar AI_KEY_SECRET invalida claves (UI pide reingresar); rotar PAT sbp_ visible en logs.
 
 ## Bugs abiertos AHORA
-(ninguno)
+- **P1 (módulo 13, reporte David 2026-11-07): "Investigación no guarda las subpáginas"** — diagnosticar y arreglar en el próximo build.
+- **EME (módulo 13, David): la forma de mostrar/escribir no le gusta** — quiere editor estilo Notion (cursiva, negrita, títulos, checks, fotos = bloques). Alcanza a rehacer el flujo paginas con bloques enriquecidos; planifica tras la sesión de MCPs (la pide David explícitamente).
 
 ## Últimas decisiones
 - 2026-11-06: Módulo 11: Foco UI v2 del boceto de David (tarjetas carrusel/grid, botones +/- con modales, progreso, plegar por menú, tabs Notas/Investigación/Tareas, libreta dual composer+mover). POST /api/ideas acepta destino+estado opcional con validación RLS. Extension/App SOLO /ajustes.
