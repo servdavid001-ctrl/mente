@@ -25,10 +25,11 @@ create policy rights_owner_all on public.worker_tokens
 create index if not exists worker_tokens_user_idx on public.worker_tokens (user_id);
 
 -- el hash y el user_id no deben ser legibles por el dueno con su JWT
--- (patron 0007): solo el admin/service_role del servidor los consulta
+-- (patron 0007): solo el admin/service_role del servidor los consulta.
+-- audit: revoke TABLE-completo de authenticated (los revokes de columna
+-- solos SON NO-OP frente al default grant de authenticated)
 revoke all on public.worker_tokens from anon;
-revoke select (token_hash) on public.worker_tokens from authenticated;
-revoke select (user_id) on public.worker_tokens from authenticated;
+revoke select on public.worker_tokens from authenticated;
 grant select (id,nombre,created_at,last_used_at,revocado_en)
   on public.worker_tokens to authenticated;
 grant insert (nombre, token_hash) on public.worker_tokens to authenticated;
