@@ -99,6 +99,7 @@ export default function TareasProyecto(props: { proyectoId: string }) {
         ocupadoId={tareas.ocupadoId}
         onToggle={(tarea) => void tareas.alternar(tarea)}
         onBorrar={(tarea) => void tareas.eliminar(tarea)}
+        onAsignar={(tarea, valor) => void tareas.asignar(tarea, valor)}
         onReintentar={() => void tareas.cargar()}
       />
     </section>

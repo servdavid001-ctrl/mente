@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { actualizarTarea, borrarTarea, crearTarea, listarTareas } from '@/lib/tareas';
-import type { Tarea } from '@/lib/types';
+import type { Asignado, Tarea } from '@/lib/types';
 
 const ERROR_CARGA = 'No pudimos cargar las tareas. Reintentar';
 const ERROR_ACCION = 'No se pudo completar la accion. Reintenta.';
@@ -74,6 +74,28 @@ export function useTareasProyecto(proyectoId: string) {
     }
   }
 
+  /** modulo 15: reparto de la tarea via PUT asignado_a (whitelist server) */
+  async function asignar(tarea: Tarea, valor: string): Promise<void> {
+    if (ocupadoId !== null || valor === (tarea.asignado_a ?? 'yo')) return;
+    setOcupadoId(tarea.id);
+    const anterior: Asignado = tarea.asignado_a ?? 'yo';
+    const siguiente = valor as Asignado;
+    setTareas((prev) =>
+      prev.map((t) => (t.id === tarea.id ? { ...t, asignado_a: siguiente } : t))
+    );
+    try {
+      const actualizada = await actualizarTarea(tarea.id, { asignado_a: siguiente });
+      setTareas((prev) => prev.map((t) => (t.id === tarea.id ? actualizada : t)));
+    } catch {
+      setTareas((prev) =>
+        prev.map((t) => (t.id === tarea.id ? { ...t, asignado_a: anterior } : t))
+      );
+      setToast(ERROR_ACCION);
+    } finally {
+      setOcupadoId(null);
+    }
+  }
+
   return {
     tareas,
     cargando,
@@ -83,6 +105,7 @@ export function useTareasProyecto(proyectoId: string) {
     cargar,
     agregar,
     alternar,
-    eliminar
+    eliminar,
+    asignar
   };
 }

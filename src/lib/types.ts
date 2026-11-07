@@ -177,6 +177,9 @@ export type Objetivo = {
 
 export type TareaEstado = 'pendiente' | 'hecha';
 
+/* modulo 15 (MCP): reparto de tareas entre el usuario y los workers */
+export type Asignado = 'yo' | 'opencode' | 'muse' | 'grok';
+
 export type Tarea = {
   id: string;
   proyectoId?: string | null;
@@ -185,6 +188,7 @@ export type Tarea = {
   titulo: string;
   nota?: string | null;
   estado: TareaEstado;
+  asignado_a?: Asignado;
   fecha?: string | null;
   orden: number;
   createdAt: string;

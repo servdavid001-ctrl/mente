@@ -14,6 +14,7 @@ export default function ListaTareas(props: {
   proyectoDe?: (tarea: Tarea) => ContextoProyecto | null;
   onToggle: (tarea: Tarea) => void;
   onBorrar: (tarea: Tarea) => void;
+  onAsignar?: (tarea: Tarea, valor: string) => void;
   onReintentar: () => void;
 }) {
   if (props.cargando) {
@@ -57,6 +58,7 @@ export default function ListaTareas(props: {
             proyectoHref={contexto?.href}
             onToggle={props.onToggle}
             onBorrar={props.onBorrar}
+            onAsignar={props.onAsignar}
           />
         );
       })}

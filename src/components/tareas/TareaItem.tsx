@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { fechaHoyISO } from '@/lib/tareas';
+import ChipsAsignado from './ChipsAsignado';
 import type { Tarea } from '@/lib/types';
 
 export default function TareaItem(props: {
@@ -12,6 +13,7 @@ export default function TareaItem(props: {
   proyectoHref?: string | null;
   onToggle: (tarea: Tarea) => void;
   onBorrar: (tarea: Tarea) => void;
+  onAsignar?: (tarea: Tarea, valor: string) => void;
 }) {
   const { tarea } = props;
   const hecha = tarea.estado === 'hecha';
@@ -47,6 +49,9 @@ export default function TareaItem(props: {
                 </Link>
               ) : null}
             </span>
+          ) : null}
+          {props.onAsignar ? (
+            <ChipsAsignado tarea={tarea} ocupado={props.ocupado} onAsignar={props.onAsignar} />
           ) : null}
         </label>
 

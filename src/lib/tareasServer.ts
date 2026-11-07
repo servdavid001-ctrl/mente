@@ -5,7 +5,7 @@ import type { createClient } from '@/utils/supabase/server';
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
 export const COLS_TAREA =
-  'id,proyecto_id,objetivo_id,idea_id,titulo,nota,estado,fecha,orden,created_at,updated_at';
+  'id,proyecto_id,objetivo_id,idea_id,titulo,nota,estado,asignado_a,fecha,orden,created_at,updated_at';
 
 export type FilaTareaNueva = {
   titulo: string;
