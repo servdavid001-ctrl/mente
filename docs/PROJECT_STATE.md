@@ -43,6 +43,7 @@ Siguiente: **SESION DE PLANIFICACION agente/MCPs/AI en curso (David la llamó)**
 | 8 | Clave AI por usuario | /ajustes, /api/ajustes/ai | ✓ QA prod PASS |
 | 9 | Higiene asistida | /higiene, /api/higiene | ✓ QA prod PASS |
 | 10 | Conexiones externas | /api/ai/externa/[id], ficha idea | ✓ deploy OK; QA con clave David pendiente |
+| 15 | MCP server de Mente | /api/mcp (9 tools), tokens, asignado_a | ✓ QA prod e2e PASS |
 | 11 | Foco UI v2 (tarjetas + proyecto simple) | /foco tarjetas, /foco/[id] tabs | ✓ QA prod PASS end-to-end |
 | 12 | Direccion de flujos | /biblioteca -> proyecto, sin pull inverso | ✓ Audit IDOR pass |
 | 13 | Paginas/subpaginas estilo Notion | ideas.parent_id, breadcrumb, max 3 | ✓ QA prod PASS |
