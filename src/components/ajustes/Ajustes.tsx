@@ -4,6 +4,9 @@ import AppShell from '../AppShell';
 import AjustesCuenta from './AjustesCuenta';
 import AjustesApariencia from './AjustesApariencia';
 import AjustesExtension from './AjustesExtension';
+import SeccionAjustes from './SeccionAjustes';
+import ChipEstado from './ChipEstado';
+import AjustesAgentes from './AjustesAgentes';
 import AjustesApp from './AjustesApp';
 import AjustesAI from './AjustesAI';
 import AjustesDatos from './AjustesDatos';
@@ -24,6 +27,14 @@ export default function Ajustes(props: { email?: string; aiEstado: EstadoCredenc
           <AjustesCuenta email={props.email} />
           <AjustesApariencia />
           <AjustesExtension />
+          <SeccionAjustes
+            id="agentes"
+            titulo="Acceso para agentes"
+            descripcion="Tokens revocables para que los workers lean y dejen contenido en Mente."
+            chip={<ChipEstado>Lectura + creacion</ChipEstado>}
+          >
+            <AjustesAgentes />
+          </SeccionAjustes>
           <AjustesApp />
           <AjustesAI estado={props.aiEstado} />
           <AjustesDatos />

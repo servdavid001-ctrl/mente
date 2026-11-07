@@ -11,6 +11,10 @@ export const MAX_PASOS = 20;
 const MIN_PASO_TEXTO = 3;
 const ESTADOS_TAREA: TareaEstado[] = ['pendiente', 'hecha'];
 
+/* modulo 15: reparto de tareas entre el usuario y los workers */
+export const ASIGNADOS_TAREA = ['yo', 'opencode', 'muse', 'grok'] as const;
+export type AsignadoTarea = (typeof ASIGNADOS_TAREA)[number];
+
 export type TareaRow = {
   id: unknown;
   proyecto_id?: string | null;
@@ -19,6 +23,7 @@ export type TareaRow = {
   titulo: unknown;
   nota?: string | null;
   estado?: string | null;
+  asignado_a?: string | null;
   fecha?: string | null;
   orden?: number | null;
   created_at: unknown;
@@ -35,11 +40,19 @@ export function mapTareaRow(row: TareaRow): Tarea {
     titulo: String(row.titulo),
     nota: row.nota ?? null,
     estado: ESTADOS_TAREA.includes(estado) ? estado : 'pendiente',
+    asignado_a: esAsignadoValido(row.asignado_a),
     fecha: row.fecha ?? null,
     orden: Number(row.orden ?? 0),
     createdAt: String(row.created_at),
     updatedAt: String(row.updated_at ?? row.created_at)
   };
+}
+
+/** asignado_a de la fila (modulo 15): valor del check-list o 'yo' por defecto */
+function esAsignadoValido(valor: string | null | undefined): AsignadoTarea {
+  return (ASIGNADOS_TAREA as readonly string[]).includes(valor ?? '')
+    ? (valor as AsignadoTarea)
+    : 'yo';
 }
 
 /** fecha de hoy (UTC, igual que current_date de Postgres) en YYYY-MM-DD */
@@ -175,7 +188,8 @@ export function validarCambiosTarea(body: unknown): Record<string, unknown> | nu
     'fecha',
     'proyecto_id',
     'objetivo_id',
-    'orden'
+    'orden',
+    'asignado_a'
   ]);
   if (claves.some((clave) => !permitidas.has(clave))) return null;
 
@@ -214,6 +228,12 @@ export function validarCambiosTarea(body: unknown): Record<string, unknown> | nu
   if ('orden' in body) {
     if (!esEntero32(body.orden)) return null;
     cambios.orden = body.orden;
+  }
+  if ('asignado_a' in body) {
+    if (typeof body.asignado_a !== 'string') return null;
+    const valor = body.asignado_a;
+    if (!(ASIGNADOS_TAREA as readonly string[]).includes(valor)) return null;
+    cambios.asignado_a = valor;
   }
   return cambios;
 }
