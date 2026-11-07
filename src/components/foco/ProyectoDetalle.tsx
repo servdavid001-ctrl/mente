@@ -91,6 +91,7 @@ export default function ProyectoDetalle(props: { proyectoId: string; email?: str
             crearIdea={acciones.crearIdea}
             crearSubpagina={acciones.crearSubpaginaEn}
             moverIdea={acciones.moverIdea}
+            guardarCuerpo={acciones.guardarCuerpo}
             opcionesDe={paginas.opcionesMover}
           />
         ) : null}

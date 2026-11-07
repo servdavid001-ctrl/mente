@@ -484,3 +484,15 @@ export async function moverIdeaAPagina(ideaId: string, parentId: string | null):
     body: JSON.stringify({ parent_id: parentId })
   });
 }
+
+/** guarda el cuerpo de la pagina (modulo 14): PUT contenido con el texto
+ * completo (titulo primera linea + cuerpo markdown). Devuelve la idea
+ * confirmada por el server (con el cap 2000 aplicado); errores = throw */
+export async function guardarCuerpoPagina(ideaId: string, texto: string): Promise<Idea> {
+  const res = await pedir<{ idea: Idea }>(`/api/ideas/${ideaId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contenido: texto })
+  });
+  return res.idea;
+}

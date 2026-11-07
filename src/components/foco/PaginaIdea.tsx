@@ -4,13 +4,15 @@ import { useState } from 'react';
 import ComposerNota from './ComposerNota';
 import BreadcrumbPaginas from './BreadcrumbPaginas';
 import ListaSubpaginas from './ListaSubpaginas';
+import CuerpoPagina from './CuerpoPagina';
 import { tituloIdea } from '@/lib/foco';
 import type { Idea, Proyecto } from '@/lib/types';
 import type { OpcionMover } from './MoverMenu';
 
-/** vista de pagina/subpagina (modulo 13): breadcrumb visible siempre, hero de
- * la pagina (titulo + cuerpo), bloque de hijas con badges y Mover a, y
- * composer inline para la nueva subpagina. Estado vive en usePaginasProyecto */
+/** vista de pagina/subpagina (modulo 13 + 14): breadcrumb visible siempre,
+ * cuerpo editable in-place (requisito #0: lo guardado se ve alli debajo),
+ * bloque de hijas con badges y Mover a, y composer inline para la nueva
+ * subpagina (fix P1 intacto). Estado vive en usePaginasProyecto */
 export default function PaginaIdea(props: {
   proyecto: Proyecto;
   ruta: Idea[];
@@ -23,6 +25,7 @@ export default function PaginaIdea(props: {
   onIrANivel: (index: number) => void;
   crearSubpagina: (texto: string, estado: 'proyecto' | 'investigacion', parentId: string) => Promise<void>;
   moverIdea: (ideaId: string, parentId: string | null) => Promise<void>;
+  guardarCuerpo: (ideaId: string, textoOriginal: string, cuerpo: string) => Promise<void>;
 }) {
   const [componiendo, setComponiendo] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -54,11 +57,11 @@ export default function PaginaIdea(props: {
       <h1 className="truncate text-[18px] font-semibold text-text">
         {tituloIdea(props.actual)}
       </h1>
-      {cuerpoDe(props.actual) ? (
-        <p className="whitespace-pre-line text-[13px] text-text-soft">
-          {cuerpoDe(props.actual)}
-        </p>
-      ) : null}
+      <CuerpoPagina
+        key={props.actual.id}
+        texto={props.actual.text}
+        onGuardar={(cuerpo) => props.guardarCuerpo(props.actual.id, props.actual.text, cuerpo)}
+      />
       <button
         type="button"
         aria-expanded={componiendo}
@@ -90,9 +93,4 @@ export default function PaginaIdea(props: {
       )}
     </section>
   );
-}
-
-/** cuerpo de la pagina: el texto despues de la primera linea (el titulo) */
-function cuerpoDe(idea: Idea): string {
-  return idea.text.split('\n').slice(1).join('\n').trim();
 }

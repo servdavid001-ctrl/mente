@@ -112,6 +112,20 @@ export async function aplicarCambio(
     if (error) throw error;
     return { idea: mapIdeaRow(data) };
   }
+  // modulo 14 (editor Notion): cuerpo de la pagina en markdown ligero. La
+  // primera linea (titulo) va incluida; vacio se rechaza porque borraria el
+  // titulo. Cap 2000 segun la spec del modulo 14.
+  if (typeof body.contenido === 'string' && body.contenido.trim().length > 0) {
+    const contenido = body.contenido.slice(0, 2000);
+    const { data, error } = await supabase
+      .from('ideas')
+      .update({ contenido })
+      .eq('id', id)
+      .select(SELECT_IDEA)
+      .single();
+    if (error) throw error;
+    return { idea: mapIdeaRow(data) };
+  }
   // quitar la imagen del item (deja el tipo; el hero vuelve al bloque frontal)
   if (body.media_url === null && Object.keys(body).length === 1) {
     const { data, error } = await supabase
