@@ -40,7 +40,14 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
 
     // pendiente expirada: fin honesto; la ladder ya la borro (best-effort)
-    if (solicitud.estado === 'pendiente' && solicitud.expira_en <= new Date().toISOString()) {
+    const expirada = new Date(solicitud.expira_en).getTime() <= Date.now();
+    if (solicitud.estado === 'pendiente' && expirada) {
+      return finDeEstado('Solicitud expirada');
+    }
+    /* audit m18 CRITICO: el branch aprobado TAMBIEN respeta la expiracion —
+     * una aprobacion vencida jamas entrega el token (410) y la ladder le
+     * anula el plain (token=null en limpiarExpiradas) */
+    if (solicitud.estado === 'aprobado' && expirada) {
       return finDeEstado('Solicitud expirada');
     }
     if (solicitud.estado === 'aprobado' && solicitud.token === null) {

@@ -13,7 +13,9 @@ const ERR_GENERIC = 'No pudimos entrar. Revisa tus datos.';
 function nextSeguro(): string {
   const next = new URLSearchParams(window.location.search).get('next');
   if (!next || next.length > 200) return '/';
-  return next.startsWith('/') && !next.startsWith('//') ? next : '/';
+  return next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/\\')
+    ? next
+    : '/';
 }
 
 export default function LoginPage() {

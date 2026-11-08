@@ -68,7 +68,10 @@ export async function buscarSolicitud(
   return data;
 }
 
-/** ladder limpieza: DELETE pendientes expirados, best-effort (sin excepciones) */
+/** ladder limpieza (audit m18 CRÍTICO): pendientes expiradas se borraban, pero
+ * las 'aprobado' sin recoger mantenian el TOKEN PLAIN a reposo por siempre.
+ * ahora: 'aprobado' expirada => token=null (la ventana del plain queda
+ * acotada) + entregadas/rechazadas viejas (>24h) se borran. best-effort */
 export async function limpiarExpiradas(admin: SupabaseAdmin): Promise<void> {
   try {
     await admin
@@ -76,6 +79,17 @@ export async function limpiarExpiradas(admin: SupabaseAdmin): Promise<void> {
       .delete()
       .eq('estado', 'pendiente')
       .lt('expira_en', new Date().toISOString());
+    await admin
+      .from('login_solicitudes')
+      .update({ token: null })
+      .eq('estado', 'aprobado')
+      .lt('expira_en', new Date().toISOString());
+    const hace = new Date(Date.now() - 86400000).toISOString();
+    await admin
+      .from('login_solicitudes')
+      .delete()
+      .in('estado', ['entregado', 'rechazado'])
+      .lt('expira_en', hace);
   } catch {
     /* best-effort: sin fallo visible */
   }
