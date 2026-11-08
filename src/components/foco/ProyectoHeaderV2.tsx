@@ -1,36 +1,21 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
+import MenuProyecto from './MenuProyecto';
 import ProgresoTarjeta from './ProgresoTarjeta';
+import FundamentoSheet from './FundamentoSheet';
 import type { Proyecto } from '@/lib/types';
 
-/** cabecera del proyecto (modulo 11): nombre + barra de progreso de tareas +
- * menu de tres puntos con "Plegar proyecto" (reversible desde el modal P
- * de /foco). Reemplaza el toggler fijo de la v1. */
+/** cabecera del proyecto (modulo 11/16): nombre + progreso de tareas +
+ * acciones (boton Fundamento del modulo 16 y menu de tres puntos con
+ * "Plegar proyecto"). Reemplaza el toggler fijo de la v1. */
 export default function ProyectoHeaderV2(props: {
   proyecto: Proyecto;
   plegando: boolean;
   onPlegar: () => void;
 }) {
   const { proyecto } = props;
-  const [abierto, setAbierto] = useState(false);
-  const raizRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!abierto) return;
-    function cerrar(e: MouseEvent) {
-      if (!raizRef.current?.contains(e.target as Node)) setAbierto(false);
-    }
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setAbierto(false);
-    }
-    document.addEventListener('mousedown', cerrar);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', cerrar);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [abierto]);
+  const [fundamentoAbierto, setFundamentoAbierto] = useState(false);
 
   return (
     <div className="rounded-card border border-border bg-surface p-4">
@@ -46,39 +31,20 @@ export default function ProyectoHeaderV2(props: {
           </h1>
         </div>
 
-        <div ref={raizRef} className="relative shrink-0">
+        <div className="flex shrink-0 items-center gap-1">
           <button
             type="button"
-            aria-label={`Mas acciones de ${proyecto.nombre}`}
-            aria-haspopup="menu"
-            aria-expanded={abierto}
-            onClick={() => setAbierto((v) => !v)}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-text-soft hover:text-text"
+            aria-label={`Ver el fundamento de ${proyecto.nombre}`}
+            onClick={() => setFundamentoAbierto(true)}
+            className="h-10 rounded-card border border-border px-3 text-[13px] font-semibold text-text"
           >
-            <span aria-hidden="true" className="text-lg leading-none">
-              ⋯
-            </span>
+            Fundamento
           </button>
-          {abierto ? (
-            <div
-              role="menu"
-              aria-label={`Acciones de ${proyecto.nombre}`}
-              className="absolute right-0 top-11 w-44 overflow-hidden rounded-card border border-border bg-raised shadow-pop"
-            >
-              <button
-                type="button"
-                role="menuitem"
-                disabled={props.plegando}
-                onClick={() => {
-                  setAbierto(false);
-                  props.onPlegar();
-                }}
-                className="h-10 w-full px-3 text-left text-[13px] font-semibold text-text disabled:opacity-50"
-              >
-                {props.plegando ? 'Plegando...' : 'Plegar proyecto'}
-              </button>
-            </div>
-          ) : null}
+          <MenuProyecto
+            nombreProyecto={proyecto.nombre}
+            plegando={props.plegando}
+            onPlegar={props.onPlegar}
+          />
         </div>
       </div>
 
@@ -88,6 +54,14 @@ export default function ProyectoHeaderV2(props: {
           total={proyecto.tareasTotal ?? 0}
         />
       </div>
+
+      {fundamentoAbierto ? (
+        <FundamentoSheet
+          proyectoId={proyecto.id}
+          proyectoNombre={proyecto.nombre}
+          onCerrar={() => setFundamentoAbierto(false)}
+        />
+      ) : null}
     </div>
   );
 }

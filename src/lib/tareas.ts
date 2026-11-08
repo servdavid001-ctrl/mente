@@ -60,6 +60,21 @@ export function fechaHoyISO(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** etiqueta corta de la fecha de una tarea: 'Hoy' o dia+mes (UTC); extraida
+ * del TareaItem al llegar el boton Copiar recado (modulo 16) para que la
+ * fila quede <100 lineas */
+export function etiquetaFecha(fecha: string): string {
+  if (fecha === fechaHoyISO()) return 'Hoy';
+  const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(fecha);
+  if (!partes) return fecha;
+  const d = new Date(Date.UTC(Number(partes[1]), Number(partes[2]) - 1, Number(partes[3])));
+  return new Intl.DateTimeFormat('es-ES', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: 'UTC'
+  }).format(d);
+}
+
 /* -- extraccion de pasos -- */
 
 type IdeaConPasos = {

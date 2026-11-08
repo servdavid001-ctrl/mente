@@ -6,10 +6,9 @@ import { credencialesUsuario } from '@/lib/ai/credenciales';
 import { MENSAJE_AI_INDISPONIBLE, chat } from '@/lib/ai/provider';
 import {
   PREFIJO_FUNDAMENTO,
-  datosFundamento,
-  mensajesFundamento,
   propuestaDe
 } from '@/lib/fundamento';
+import { datosFundamento, mensajesFundamento } from '@/lib/fundamentoPrompt';
 
 type Params = { params: Promise<{ id: string }> };
 

@@ -2,10 +2,15 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { fechaHoyISO } from '@/lib/tareas';
+import { etiquetaFecha } from '@/lib/tareas';
 import ChipsAsignado from './ChipsAsignado';
+import BotonBorrarTarea from './BotonBorrarTarea';
+import RecadoSheet from './RecadoSheet';
 import type { Tarea } from '@/lib/types';
 
+/** fila de tarea (modulo 7/15/16): check + fecha + chips asignado + acciones
+ * (Copiar recado del modulo 16 y Borrar con confirmacion extraida). El
+ * recado se genera en el server (GET determinista) y solo se muestra/copiar */
 export default function TareaItem(props: {
   tarea: Tarea;
   ocupado?: boolean;
@@ -17,7 +22,7 @@ export default function TareaItem(props: {
 }) {
   const { tarea } = props;
   const hecha = tarea.estado === 'hecha';
-  const [confirmando, setConfirmando] = useState(false);
+  const [recadoAbierto, setRecadoAbierto] = useState(false);
   const inputId = `tarea-${tarea.id}`;
 
   return (
@@ -55,50 +60,27 @@ export default function TareaItem(props: {
           ) : null}
         </label>
 
-        {confirmando ? (
-          <span className="flex shrink-0 gap-1">
-            <button
-              type="button"
-              onClick={() => {
-                setConfirmando(false);
-                props.onBorrar(tarea);
-              }}
-              className="h-9 rounded-blob px-2 text-[12px] font-semibold text-danger"
-            >
-              Si, borrar
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmando(false)}
-              className="h-9 rounded-blob px-2 text-[12px] text-text-soft"
-            >
-              No
-            </button>
-          </span>
-        ) : (
+        <div className="flex shrink-0 flex-col items-end gap-2">
           <button
             type="button"
-            aria-label={`Borrar ${tarea.titulo}`}
+            aria-label={`Copiar recado de ${tarea.titulo}`}
             disabled={props.ocupado}
-            onClick={() => setConfirmando(true)}
-            className="h-9 shrink-0 rounded-blob px-2 text-[12px] font-semibold text-text-soft disabled:opacity-50"
+            onClick={() => setRecadoAbierto(true)}
+            className="h-9 rounded-blob px-2 text-[12px] font-semibold text-text-soft disabled:opacity-50"
           >
-            Borrar
+            Copiar recado
           </button>
-        )}
+          <BotonBorrarTarea
+            titulo={tarea.titulo}
+            ocupado={props.ocupado}
+            onBorrar={() => props.onBorrar(tarea)}
+          />
+        </div>
       </div>
+
+      {recadoAbierto ? (
+        <RecadoSheet tareaId={tarea.id} onCerrar={() => setRecadoAbierto(false)} />
+      ) : null}
     </li>
   );
-}
-
-function etiquetaFecha(fecha: string): string {
-  if (fecha === fechaHoyISO()) return 'Hoy';
-  const partes = /^(\d{4})-(\d{2})-(\d{2})$/.exec(fecha);
-  if (!partes) return fecha;
-  const d = new Date(Date.UTC(Number(partes[1]), Number(partes[2]) - 1, Number(partes[3])));
-  return new Intl.DateTimeFormat('es-ES', {
-    day: 'numeric',
-    month: 'short',
-    timeZone: 'UTC'
-  }).format(d);
 }
