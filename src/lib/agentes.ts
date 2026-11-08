@@ -6,6 +6,7 @@ export type TokenAgente = {
   created_at: string;
   last_used_at: string | null;
   revocado_en: string | null;
+  permisos: string[] | null;
 };
 
 async function pedir<T>(url: string, init?: RequestInit): Promise<T> {
@@ -41,4 +42,13 @@ export function revocarTokenAgente(id: string): Promise<void> {
     `/api/ajustes/tokens?id=${encodeURIComponent(id)}`,
     { method: 'DELETE' }
   ).then(() => undefined);
+}
+
+/** modulo 19: guarda los permisos del conector (PUT owner only) */
+export function guardarPermisosToken(id: string, permisos: string[]): Promise<string[]> {
+  return pedir<{ ok: boolean; permisos: string[] }>('/api/ajustes/tokens', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, permisos })
+  }).then((res) => res.permisos);
 }
