@@ -3,19 +3,22 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { etiquetaFecha } from '@/lib/tareas';
+import FlechasOrden from './FlechasOrden';
 import ChipsAsignado from './ChipsAsignado';
 import BotonBorrarTarea from './BotonBorrarTarea';
 import RecadoSheet from './RecadoSheet';
 import type { Tarea } from '@/lib/types';
 
-/** fila de tarea (modulo 7/15/16): check + fecha + chips asignado + acciones
- * (Copiar recado del modulo 16 y Borrar con confirmacion extraida). El
- * recado se genera en el server (GET determinista) y solo se muestra/copiar */
+/* fila de tarea (modulo 7/15/16 + paso 4): flechas de orden (opcionales), check
+ * + fecha + chips asignado + acciones (Copiar recado y Borrar). El root es
+ * un div; el caller pone el li del listado. El recado se genera en el server
+ * (GET determinista) y solo se muestra/copiar */
 export default function TareaItem(props: {
   tarea: Tarea;
   ocupado?: boolean;
   proyectoNombre?: string | null;
   proyectoHref?: string | null;
+  ordenControles?: { puedeSubir: boolean; puedeBajar: boolean; subir: () => void; bajar: () => void };
   onToggle: (tarea: Tarea) => void;
   onBorrar: (tarea: Tarea) => void;
   onAsignar?: (tarea: Tarea, valor: string) => void;
@@ -26,8 +29,18 @@ export default function TareaItem(props: {
   const inputId = `tarea-${tarea.id}`;
 
   return (
-    <li className="rounded-card border border-border bg-surface px-3 py-2.5">
+    <div className="rounded-card border border-border bg-surface px-3 py-2.5">
       <div className="flex items-start gap-3">
+        {props.ordenControles ? (
+          <FlechasOrden
+            etiqueta={tarea.titulo}
+            puedeSubir={props.ordenControles.puedeSubir}
+            puedeBajar={props.ordenControles.puedeBajar}
+            ocupado={props.ocupado}
+            subir={props.ordenControles.subir}
+            bajar={props.ordenControles.bajar}
+          />
+        ) : null}
         <input
           id={inputId}
           type="checkbox"
@@ -81,6 +94,6 @@ export default function TareaItem(props: {
       {recadoAbierto ? (
         <RecadoSheet tareaId={tarea.id} onCerrar={() => setRecadoAbierto(false)} />
       ) : null}
-    </li>
+    </div>
   );
 }

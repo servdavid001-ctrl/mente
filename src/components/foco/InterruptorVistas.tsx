@@ -8,18 +8,17 @@ import type { OpcionMover } from './MoverMenu';
 import type { ComponentProps } from 'react';
 
 type PropsPaneles = ComponentProps<typeof PanelesProyecto>;
+type VistaCuadros = NonNullable<PropsPaneles['vista']>;
 
-/** interruptor del detalle de proyecto (modulo 13): sin ruta abierta muestra
- * los paneles (tabs); con ruta abierta muestra la PAGINA de esa idea raiz o
- * subpagina. La composicion vive en ProyectoDetalle; aqui solo la eleccion */
+/** interruptor del detalle de proyecto (paso 4): con ruta abierta muestra la
+ *  PAGINA de esa idea raiz o subpagina (modulo 13, con breadcrumb); sin ruta
+ *  abierta muestra los cuadros + vistas ampliadas. La eleccion vive aqui. */
 export default function InterruptorVistas(props: {
   proyecto: Proyecto;
   paginas: VistaPaginas;
   notas: Idea[];
   investigaciones: Idea[];
   objetivos: Objetivo[];
-  tab: PropsPaneles['tab'];
-  onTab: PropsPaneles['onTab'];
   plegando: boolean;
   onPlegar: () => void;
   abrirPagina: (idea: Idea) => void;
@@ -28,6 +27,9 @@ export default function InterruptorVistas(props: {
   moverIdea: (ideaId: string, parentId: string | null) => Promise<void>;
   guardarCuerpo: (ideaId: string, textoOriginal: string, cuerpo: string) => Promise<void>;
   opcionesDe: (hija: Idea) => OpcionMover[];
+  tareas: PropsPaneles['tareas'];
+  vista: PropsPaneles['vista'];
+  onVista: (vista: VistaCuadros | null) => void;
 }) {
   const actual = props.paginas.actual;
   if (actual === null) {
@@ -36,14 +38,15 @@ export default function InterruptorVistas(props: {
         proyecto={props.proyecto}
         plegando={props.plegando}
         onPlegar={props.onPlegar}
-        tab={props.tab}
-        onTab={props.onTab}
         notas={props.notas}
         investigaciones={props.investigaciones}
         objetivos={props.objetivos}
         crearIdea={props.crearIdea}
         abrirPagina={props.abrirPagina}
         hijosPor={props.paginas.hijosPor}
+        tareas={props.tareas}
+        vista={props.vista}
+        onVista={props.onVista}
       />
     );
   }

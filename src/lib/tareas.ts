@@ -20,6 +20,7 @@ export type TareaRow = {
   proyecto_id?: string | null;
   objetivo_id?: string | null;
   idea_id?: string | null;
+  parent_id?: string | null;
   titulo: unknown;
   nota?: string | null;
   estado?: string | null;
@@ -41,6 +42,7 @@ export function mapTareaRow(row: TareaRow): Tarea {
     nota: row.nota ?? null,
     estado: ESTADOS_TAREA.includes(estado) ? estado : 'pendiente',
     asignado_a: esAsignadoValido(row.asignado_a),
+    parentId: row.parent_id ?? null,
     fecha: row.fecha ?? null,
     orden: Number(row.orden ?? 0),
     createdAt: String(row.created_at),
@@ -152,6 +154,8 @@ export type TareaNueva = {
   proyecto_id: string | null;
   objetivo_id: string | null;
   idea_id: string | null;
+  /* paso 4: subtarea; el server valida que el padre sea raiz propio */
+  parent_id: string | null;
   fecha: string | null;
   orden: number;
 };
@@ -164,6 +168,7 @@ export function validarTareaNueva(body: unknown): TareaNueva | null {
     'proyecto_id',
     'objetivo_id',
     'idea_id',
+    'parent_id',
     'fecha',
     'orden'
   ]);
@@ -179,6 +184,8 @@ export function validarTareaNueva(body: unknown): TareaNueva | null {
   if (objetivoId === undefined) return null;
   const ideaId = normalizarUuidOpcional(body.idea_id);
   if (ideaId === undefined) return null;
+  const parentId = normalizarUuidOpcional(body.parent_id);
+  if (parentId === undefined) return null;
   const fecha = normalizarFechaOpcional(body.fecha);
   if (fecha === undefined) return null;
 
@@ -188,7 +195,16 @@ export function validarTareaNueva(body: unknown): TareaNueva | null {
     orden = body.orden;
   }
 
-  return { titulo, nota, proyecto_id: proyectoId, objetivo_id: objetivoId, idea_id: ideaId, fecha, orden };
+  return {
+    titulo,
+    nota,
+    proyecto_id: proyectoId,
+    objetivo_id: objetivoId,
+    idea_id: ideaId,
+    parent_id: parentId,
+    fecha,
+    orden
+  };
 }
 
 /** cambios aceptados por PUT /api/tareas/[id]; null = payload invalido */
@@ -203,6 +219,7 @@ export function validarCambiosTarea(body: unknown): Record<string, unknown> | nu
     'fecha',
     'proyecto_id',
     'objetivo_id',
+    'parent_id',
     'orden',
     'asignado_a'
   ]);
@@ -244,6 +261,11 @@ export function validarCambiosTarea(body: unknown): Record<string, unknown> | nu
     if (!esEntero32(body.orden)) return null;
     cambios.orden = body.orden;
   }
+  if ('parent_id' in body) {
+    const parentId = normalizarUuidOpcional(body.parent_id);
+    if (parentId === undefined) return null;
+    cambios.parent_id = parentId;
+  }
   if ('asignado_a' in body) {
     if (typeof body.asignado_a !== 'string') return null;
     const valor = body.asignado_a;
@@ -281,6 +303,7 @@ export type DatosTarea = {
   proyecto_id?: string | null;
   objetivo_id?: string | null;
   idea_id?: string | null;
+  parent_id?: string | null;
   fecha?: string | null;
   orden?: number;
 };

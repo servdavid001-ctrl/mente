@@ -9,31 +9,28 @@ import { EsqueletoDetalle, SinProyecto } from './EstadosDetalle';
 import { useDetalleProyecto } from './useDetalleProyecto';
 import { useAccionesIdeas } from './useAccionesIdeas';
 import { usePaginasProyecto } from './usePaginasProyecto';
+import { useTareasProyecto } from '@/components/tareas/useTareasProyecto';
+import type { VistaCuadroGrid } from './CuadrosProyecto';
+import { raicesPorEstado } from './raicesProyecto';
 import { actualizarProyecto, tituloIdea } from '@/lib/foco';
 import type { TabId } from '@/lib/types';
 
-type TabProyecto = 'notas' | 'investigacion' | 'tareas';
-
-/** proyecto (modulo 11 + 13): tabs Notas/Investigacion/Tareas; el tap de una
- * nota abre su PAGINA con breadcrumb, subpaginas y mover via PUT parent_id */
+/** proyecto (paso 4, sin tabs): 3 cuadros Investigacion/Notas/Tareas con la
+ *  vista ampliada por overlay; el tap de una idea abre su PAGina con
+ *  breadcrumb, subpaginas y mover via PUT parent_id. El hook de tareas vive
+ *  aqui: alimenta el conteo m/total del cuadro y el tablon del overlay. */
 export default function ProyectoDetalle(props: { proyectoId: string; email?: string }) {
   const router = useRouter();
   const detalle = useDetalleProyecto(props.proyectoId);
   const proyecto = detalle.proyecto;
-  const [tab, setTab] = useState<TabProyecto>('notas');
+  const [vista, setVista] = useState<VistaCuadroGrid | null>(null);
   const [plegando, setPlegando] = useState(false);
   const acciones = useAccionesIdeas(props.proyectoId, detalle);
   const paginas = usePaginasProyecto(detalle.ideas);
+  const tareas = useTareasProyecto(props.proyectoId);
 
   // nivel 0 (modulo 13): solo ideas raiz; las subpaginas viven por parent_id
-  const notas = useMemo(
-    () => detalle.ideas.filter((i) => i.estado === 'proyecto' && !i.parentId),
-    [detalle.ideas]
-  );
-  const investigaciones = useMemo(
-    () => detalle.ideas.filter((i) => i.estado === 'investigacion' && !i.parentId),
-    [detalle.ideas]
-  );
+  const raices = useMemo(() => raicesPorEstado(detalle.ideas), [detalle.ideas]);
 
   async function plegar() {
     if (!proyecto || plegando) return;
@@ -80,11 +77,9 @@ export default function ProyectoDetalle(props: { proyectoId: string; email?: str
           <InterruptorVistas
             proyecto={proyecto}
             paginas={paginas}
-            notas={notas}
-            investigaciones={investigaciones}
+            notas={raices.notas}
+            investigaciones={raices.investigaciones}
             objetivos={detalle.objetivos}
-            tab={tab}
-            onTab={setTab}
             plegando={plegando}
             onPlegar={() => void plegar()}
             abrirPagina={paginas.abrir}
@@ -93,6 +88,9 @@ export default function ProyectoDetalle(props: { proyectoId: string; email?: str
             moverIdea={acciones.moverIdea}
             guardarCuerpo={acciones.guardarCuerpo}
             opcionesDe={paginas.opcionesMover}
+            tareas={tareas}
+            vista={vista}
+            onVista={(nueva) => setVista(nueva)}
           />
         ) : null}
         {!detalle.cargando && !detalle.error && !proyecto ? <SinProyecto /> : null}
