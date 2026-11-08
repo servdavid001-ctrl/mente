@@ -9,6 +9,15 @@ import { CampoAuth, SpinAuth } from '@/components/auth/CampoAuth';
 const ERR_PASSWORD = 'Contrasena incorrecta';
 const ERR_GENERIC = 'No pudimos entrar. Revisa tus datos.';
 
+/** next interno de la sesion (modulo 18): solo rutas propias del app */
+function nextSeguro(): string {
+  const next = new URLSearchParams(window.location.search).get('next');
+  if (!next || next.length > 200) return '/';
+  return next.startsWith('/') && !next.startsWith('//') && !next.startsWith('/\\')
+    ? next
+    : '/';
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -19,7 +28,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     createClient().auth.getUser().then(({ data }) => {
-      if (data.user) router.replace('/');
+      if (data.user) router.replace(nextSeguro());
     }).catch(() => undefined);
   }, [router]);
 
@@ -36,7 +45,7 @@ export default function LoginPage() {
       const client = createClient();
       const { error: err } = await client.auth.signInWithPassword({ email, password });
       if (err) throw err;
-      router.replace('/'); // LoginPage: exito directa (sesion ya vive en cookies)
+      router.replace(nextSeguro()); // LoginPage: exito directa (sesion ya vive en cookies)
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : '';
       const esCredenciales = msg.toLowerCase().includes('invalid login credentials');
