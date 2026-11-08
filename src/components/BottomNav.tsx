@@ -4,11 +4,13 @@ import Link from 'next/link';
 import IconoNav from './NavIconos';
 import type { TabId } from '@/lib/types';
 
+/** paso 2 del rediseño David: sin 'Ajustes'; el engranaje de la barra
+ * superior del shell movil (AppShell header, aria-label Ajustes)
+ * es el unico camino rapido a /ajustes en movil */
 const TABS: { id: TabId; label: string; ariaLabel: string; href: string }[] = [
   { id: 'foco', label: 'Foco', ariaLabel: 'Ir a Foco', href: '/foco' },
   { id: 'bandeja', label: 'Bandeja', ariaLabel: 'Ir a la Bandeja de entrada', href: '/' },
-  { id: 'biblioteca', label: 'Biblioteca', ariaLabel: 'Ir a la Biblioteca', href: '/biblioteca' },
-  { id: 'ajustes', label: 'Ajustes', ariaLabel: 'Ir a Ajustes', href: '/ajustes' }
+  { id: 'biblioteca', label: 'Biblioteca', ariaLabel: 'Ir a la Biblioteca', href: '/biblioteca' }
 ];
 
 export default function BottomNav(props: { active: TabId }) {

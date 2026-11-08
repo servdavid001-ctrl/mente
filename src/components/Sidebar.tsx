@@ -2,21 +2,18 @@
 
 import Link from 'next/link';
 import IconoNav from './NavIconos';
+import PerfilSidebar from './PerfilSidebar';
 import type { TabId } from '@/lib/types';
 
+/** paso 2 del rediseño David: solo 3 tabs; Ajustes vive en el engranaje
+ * del bloque PERFIL del pie (PerfilSidebar) y de la barra superior movil */
 const NAV: { id: TabId; label: string; ariaLabel: string; href: string }[] = [
   { id: 'foco', label: 'Foco', ariaLabel: 'Ir a Foco', href: '/foco' },
   { id: 'bandeja', label: 'Bandeja', ariaLabel: 'Ir a la Bandeja de entrada', href: '/' },
-  { id: 'biblioteca', label: 'Biblioteca', ariaLabel: 'Ir a la Biblioteca', href: '/biblioteca' },
-  { id: 'ajustes', label: 'Ajustes', ariaLabel: 'Ir a Ajustes', href: '/ajustes' }
+  { id: 'biblioteca', label: 'Biblioteca', ariaLabel: 'Ir a la Biblioteca', href: '/biblioteca' }
 ];
 
-export default function Sidebar(props: {
-  active: TabId;
-  email?: string;
-  saliendo: boolean;
-  onCerrarSesion: () => void;
-}) {
+export default function Sidebar(props: { active: TabId; email?: string }) {
   return (
     <aside className="hidden shrink-0 flex-col border-r border-border bg-surface md:flex md:w-60 lg:w-64">
       <div className="px-5 pb-5 pt-6">
@@ -53,19 +50,7 @@ export default function Sidebar(props: {
         })}
       </nav>
 
-      <div className="mt-auto border-t border-border px-5 py-4">
-        <p className="mb-3 text-[12px] leading-snug text-text-soft [overflow-wrap:anywhere]">
-          {props.email ?? 'Sesion iniciada'}
-        </p>
-        <button
-          type="button"
-          onClick={props.onCerrarSesion}
-          disabled={props.saliendo}
-          className="h-11 w-full rounded-xl border border-border px-3 text-[13px] font-semibold text-text nav-hover hover:text-danger disabled:opacity-50"
-        >
-          Cerrar sesion
-        </button>
-      </div>
+      <PerfilSidebar email={props.email} />
     </aside>
   );
 }
