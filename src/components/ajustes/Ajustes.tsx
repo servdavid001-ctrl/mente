@@ -1,6 +1,7 @@
 'use client';
 
 import AppShell from '../AppShell';
+import AjustesPerfil from './AjustesPerfil';
 import AjustesCuenta from './AjustesCuenta';
 import AjustesApariencia from './AjustesApariencia';
 import AjustesExtension from './AjustesExtension';
@@ -11,10 +12,17 @@ import AjustesApp from './AjustesApp';
 import AjustesAI from './AjustesAI';
 import AjustesDatos from './AjustesDatos';
 import AjustesAcerca from './AjustesAcerca';
+import AjustesCerrarSesion from './AjustesCerrarSesion';
 import type { EstadoCredencial } from '@/lib/ai/credenciales';
 
-/** panel /ajustes: cuenta, apariencia, distribucion, AI, datos y acerca de */
-export default function Ajustes(props: { email?: string; aiEstado: EstadoCredencial }) {
+type PropsPerfil = { uid: string; nombre?: string | null; fotoExt?: string | null };
+
+/** panel /ajustes (paso 3): perfil primero, ajustes existentes y cerrar sesion al final */
+export default function Ajustes(props: {
+  email?: string;
+  aiEstado: EstadoCredencial;
+  perfil: PropsPerfil;
+}) {
   return (
     <AppShell activeTab="ajustes" titulo="Ajustes" email={props.email}>
       <div className="mx-auto w-full max-w-[48rem]">
@@ -24,7 +32,8 @@ export default function Ajustes(props: { email?: string; aiEstado: EstadoCredenc
         <p className="mt-2 text-[15px] text-text-soft">Tu cuenta, tu app, tus datos.</p>
 
         <div className="mt-6 space-y-4 md:space-y-5">
-          <AjustesCuenta email={props.email} />
+          <AjustesPerfil {...props.perfil} email={props.email} />
+          <AjustesCuenta />
           <AjustesApariencia />
           <AjustesExtension />
           <SeccionAjustes
@@ -39,6 +48,7 @@ export default function Ajustes(props: { email?: string; aiEstado: EstadoCredenc
           <AjustesAI estado={props.aiEstado} />
           <AjustesDatos />
           <AjustesAcerca />
+          <AjustesCerrarSesion />
         </div>
       </div>
     </AppShell>
