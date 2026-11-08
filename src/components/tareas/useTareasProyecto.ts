@@ -1,17 +1,22 @@
-'use client';
-
 import { useCallback, useEffect, useState } from 'react';
-import { actualizarTarea, borrarTarea, crearTarea, listarTareas } from '@/lib/tareas';
-import type { Asignado, Tarea } from '@/lib/types';
+import { listarTareas } from '@/lib/tareas';
+import { alternarTarea, asignarTarea, eliminarTarea, type CtxTareas } from './useTareasTap';
+import { agregarSubtareaTarea, agregarTarea } from './useTareasAlta';
+import { reordenarTarea } from './useTareasReordenar';
+import type { Tarea } from '@/lib/types';
 
 const ERROR_CARGA = 'No pudimos cargar las tareas. Reintentar';
-const ERROR_ACCION = 'No se pudo completar la accion. Reintenta.';
 
+export type ResultadoTareas = ReturnType<typeof useTareasProyecto>;
+
+/* datos + escritura del proyecto de un proyecto (paso 4). El estado vive aqui
+ * y las acciones en archivos propios (tap/alta/reordenar) via CtxTareas */
 export function useTareasProyecto(proyectoId: string) {
   const [tareas, setTareas] = useState<Tarea[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | undefined>();
   const [ocupadoId, setOcupadoId] = useState<string | null>(null);
+  const [ordenando, setOrdenando] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   const cargar = useCallback(async () => {
@@ -36,76 +41,32 @@ export function useTareasProyecto(proyectoId: string) {
     return () => window.clearTimeout(t);
   }, [toast]);
 
-  async function agregar(titulo: string, fecha: string | null): Promise<void> {
-    const creada = await crearTarea({ titulo, fecha, proyecto_id: proyectoId });
-    setTareas((prev) => [...prev, creada]);
-  }
-
-  async function alternar(tarea: Tarea): Promise<void> {
-    if (ocupadoId !== null) return;
-    const siguiente = tarea.estado === 'pendiente' ? 'hecha' : 'pendiente';
-    setOcupadoId(tarea.id);
-    setTareas((prev) =>
-      prev.map((t) => (t.id === tarea.id ? { ...t, estado: siguiente } : t))
-    );
-    try {
-      const actualizada = await actualizarTarea(tarea.id, { estado: siguiente });
-      setTareas((prev) => prev.map((t) => (t.id === tarea.id ? actualizada : t)));
-    } catch {
-      setTareas((prev) =>
-        prev.map((t) => (t.id === tarea.id ? { ...t, estado: tarea.estado } : t))
-      );
-      setToast(ERROR_ACCION);
-    } finally {
-      setOcupadoId(null);
-    }
-  }
-
-  async function eliminar(tarea: Tarea): Promise<void> {
-    if (ocupadoId !== null) return;
-    setOcupadoId(tarea.id);
-    try {
-      await borrarTarea(tarea.id);
-      setTareas((prev) => prev.filter((t) => t.id !== tarea.id));
-    } catch {
-      setToast(ERROR_ACCION);
-    } finally {
-      setOcupadoId(null);
-    }
-  }
-
-  /** modulo 15: reparto de la tarea via PUT asignado_a (whitelist server) */
-  async function asignar(tarea: Tarea, valor: string): Promise<void> {
-    if (ocupadoId !== null || valor === (tarea.asignado_a ?? 'yo')) return;
-    setOcupadoId(tarea.id);
-    const anterior: Asignado = tarea.asignado_a ?? 'yo';
-    const siguiente = valor as Asignado;
-    setTareas((prev) =>
-      prev.map((t) => (t.id === tarea.id ? { ...t, asignado_a: siguiente } : t))
-    );
-    try {
-      const actualizada = await actualizarTarea(tarea.id, { asignado_a: siguiente });
-      setTareas((prev) => prev.map((t) => (t.id === tarea.id ? actualizada : t)));
-    } catch {
-      setTareas((prev) =>
-        prev.map((t) => (t.id === tarea.id ? { ...t, asignado_a: anterior } : t))
-      );
-      setToast(ERROR_ACCION);
-    } finally {
-      setOcupadoId(null);
-    }
-  }
+  const ctx: CtxTareas = {
+    proyectoId,
+    tareas,
+    ocupadoId,
+    ordenando,
+    setTareas,
+    setOcupadoId,
+    setOrdenando,
+    avisar: setToast
+  };
 
   return {
     tareas,
     cargando,
     error,
     ocupadoId,
+    ordenando,
     toast,
     cargar,
-    agregar,
-    alternar,
-    eliminar,
-    asignar
+    alternar: (tarea: Tarea) => alternarTarea(ctx, tarea),
+    eliminar: (tarea: Tarea) => eliminarTarea(ctx, tarea),
+    asignar: (tarea: Tarea, valor: string) => asignarTarea(ctx, tarea, valor),
+    agregar: (titulo: string, fecha: string | null) => agregarTarea(ctx, titulo, fecha),
+    agregarSubtarea: (parentId: string, titulo: string) =>
+      agregarSubtareaTarea(ctx, parentId, titulo),
+    reordenar: (tarea: Tarea, direccion: 'arriba' | 'abajo') =>
+      reordenarTarea(ctx, tarea, direccion)
   };
 }
