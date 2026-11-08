@@ -29,10 +29,12 @@ export async function proxy(request: NextRequest) {
   // la API maneja su propio 401; el redirect HTML romperia los fetch JSON.
   // /compartir es el share-target: su route handler decide el 303 a /login
   // (necesario tambien para POST multipart con archivos).
+  // /integraciones es documentacion publica (modulo 19): sin auth, SSR static.
   const esExenta =
     request.nextUrl.pathname.startsWith('/api') ||
     request.nextUrl.pathname.startsWith('/login') ||
     request.nextUrl.pathname.startsWith('/registro') ||
+    request.nextUrl.pathname.startsWith('/integraciones') ||
     request.nextUrl.pathname === '/compartir';
   if (!user && !esExenta) {
     return NextResponse.redirect(new URL('/login', request.url));

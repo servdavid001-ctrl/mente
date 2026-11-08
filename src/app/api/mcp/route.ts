@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { leerBearerMt, buscarTokenAgente } from '@/lib/agentesServer';
-import { HERRAMIENTAS_MCP } from '@/lib/mcp/catalogo';
+import { HERRAMIENTAS_MCP } from '@/lib/mcp/tools';
 import { dentroDeCupo, perfilCupo, registrarUso } from '@/lib/mcp/sesiones';
 import { fallo, ok, llamadaTool } from '@/lib/mcp/respuesta';
 
 /** servidor MCP (modulo 15): JSON-RPC 2.0 stateless. Auth Bearer mt_ por
  * peticion (sha256 -> worker_tokens via admin client); user_id SIEMPRE del
- * token, jamas del body. Cada query filtrada por user_id. Log + 60/min. */
+ * token, jamas del body. Cada query filtrada por user_id. Log + 60/min.
+ * Modulo 19: tools/list solo ofrece las herramientas que el conector
+ * tiene permitidas (permisos del token). */
 
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +48,9 @@ export async function POST(request: Request): Promise<NextResponse> {
     });
   }
   if (metodo === 'ping') return ok(rpcId, {});
-  if (metodo === 'tools/list') return ok(rpcId, { tools: HERRAMIENTAS_MCP });
+  if (metodo === 'tools/list') {
+    return ok(rpcId, { tools: HERRAMIENTAS_MCP.filter((t) => filaToken.permisos?.includes(t.name)) });
+  }
   if (metodo === 'tools/call') {
     return await llamadaTool(admin, filaToken, rpcId, body.params);
   }

@@ -97,6 +97,12 @@ export default function LoginPage() {
         >
           Crear cuenta nueva
         </Link>
+        <Link
+          href="/integraciones"
+          className="mt-6 block text-center text-xs text-text-soft underline-offset-4 hover:underline"
+        >
+          Integraciones y MCP
+        </Link>
       </div>
     </main>
   );
