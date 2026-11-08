@@ -380,14 +380,6 @@ export function borrarProyecto(id: string): Promise<void> {
   return pedir<void>(`/api/proyectos/${id}`, { method: 'DELETE' });
 }
 
-export async function listarObjetivos(proyectoId?: string): Promise<Objetivo[]> {
-  const url = proyectoId
-    ? `/api/objetivos?proyecto_id=${encodeURIComponent(proyectoId)}`
-    : '/api/objetivos';
-  const res = await pedir<{ objetivos: Objetivo[] }>(url);
-  return res.objetivos;
-}
-
 export async function crearObjetivo(datos: DatosObjetivo): Promise<Objetivo> {
   const res = await pedir<{ objetivo: Objetivo }>('/api/objetivos', {
     method: 'POST',
