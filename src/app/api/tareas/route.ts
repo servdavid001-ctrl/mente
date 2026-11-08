@@ -13,6 +13,7 @@ import {
   relacionInvalida,
   type FilaTareaNueva
 } from '@/lib/tareasServer';
+import { padreValidoNueva } from '@/lib/subtareas';
 import type { TareaEstado } from '@/lib/types';
 
 const MENSAJE_RELACION: Record<string, string> = {
@@ -83,12 +84,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Datos de la tarea invalidos' }, { status: 400 });
     }
 
+    /* paso 4: si es subtarea, el padre debe ser raiz propio y del mismo
+     * proyecto; la subtarea hereda el proyecto del padre */
+    if (datos.parent_id) {
+      const padre = await padreValidoNueva(supabase, datos.parent_id);
+      if (padre === null) {
+        return NextResponse.json({ error: 'Subtarea invalida' }, { status: 400 });
+      }
+      if ((padre.proyecto_id ?? null) !== (datos.proyecto_id ?? null)) {
+        return NextResponse.json(
+          { error: 'La subtarea debe ser del proyecto de su padre' },
+          { status: 400 }
+        );
+      }
+    }
+
     const invalida = await relacionInvalida(supabase, datos);
     if (invalida) {
       return NextResponse.json({ error: MENSAJE_RELACION[invalida] }, { status: 400 });
     }
 
-    const fila: FilaTareaNueva = { ...datos };
+    const fila: FilaTareaNueva = { ...datos, parent_id: datos.parent_id || null };
     const { data, error } = await supabase
       .from('tareas')
       .insert({ ...fila, user_id: user.id })

@@ -7,6 +7,7 @@ import {
   leerJsonTareas,
   relacionInvalida
 } from '@/lib/tareasServer';
+import { moverSubtareaValida } from '@/lib/subtareas';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -27,6 +28,14 @@ export async function PUT(request: Request, { params }: Params) {
     const cambios = validarCambiosTarea(await leerJsonTareas(request));
     if (cambios === null) {
       return NextResponse.json({ error: 'Datos de la tarea invalidos' }, { status: 400 });
+    }
+
+    /* paso 4: mover de raiz/subtarea; NIVEL max 1 validado en server */
+    if (typeof cambios.parent_id === 'string' || cambios.parent_id === null) {
+      const resultado = await moverSubtareaValida(supabase, id, cambios.parent_id as string | null);
+      if (!resultado.ok) {
+        return NextResponse.json({ error: resultado.error }, { status: 400 });
+      }
     }
 
     const invalida = await relacionInvalida(supabase, cambios);

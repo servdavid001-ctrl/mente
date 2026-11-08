@@ -5,7 +5,7 @@ import type { createClient } from '@/utils/supabase/server';
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
 export const COLS_TAREA =
-  'id,proyecto_id,objetivo_id,idea_id,titulo,nota,estado,asignado_a,fecha,orden,created_at,updated_at';
+  'id,proyecto_id,objetivo_id,idea_id,parent_id,titulo,nota,estado,asignado_a,fecha,orden,created_at,updated_at';
 
 export type FilaTareaNueva = {
   titulo: string;
@@ -13,6 +13,9 @@ export type FilaTareaNueva = {
   proyecto_id: string | null;
   objetivo_id: string | null;
   idea_id: string | null;
+  /* paso 4: solo POST /api/tareas la usa (subtarea validada); los lotes de
+   * ideas/objetivos van a raiz */
+  parent_id?: string | null;
   fecha: string | null;
   orden: number;
 };
@@ -78,6 +81,7 @@ export async function insertarTareas(
     proyecto_id: fila.proyecto_id,
     objetivo_id: fila.objetivo_id,
     idea_id: fila.idea_id,
+    parent_id: fila.parent_id ?? null,
     fecha: fila.fecha,
     orden: fila.orden
   }));

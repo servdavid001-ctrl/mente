@@ -192,6 +192,8 @@ export type Tarea = {
   nota?: string | null;
   estado: TareaEstado;
   asignado_a?: Asignado;
+  /* paso 4: padre de una subtarea (self-reference); null = tarea raiz */
+  parentId?: string | null;
   fecha?: string | null;
   orden: number;
   createdAt: string;
