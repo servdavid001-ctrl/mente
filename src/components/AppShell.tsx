@@ -50,12 +50,7 @@ export default function AppShell(props: Props) {
         Saltar al contenido
       </a>
 
-      <Sidebar
-        active={tab}
-        email={props.email}
-        saliendo={saliendo}
-        onCerrarSesion={() => void cerrarSesion()}
-      />
+      <Sidebar active={tab} email={props.email} />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col md:max-w-none">
@@ -67,7 +62,7 @@ export default function AppShell(props: Props) {
             {tab !== 'ajustes' ? (
               <Link
                 href="/ajustes"
-                aria-label="Ir a Ajustes"
+                aria-label="Ajustes"
                 className="ml-auto flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-text-soft hover:text-text"
               >
                 <svg
