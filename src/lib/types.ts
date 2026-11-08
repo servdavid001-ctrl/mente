@@ -29,11 +29,14 @@ export type Idea = {
 };
 
 // extendido con sourceUrl usado para voz: el CaptureBar sube el audio al bucket
-// y entrega `<user_id>/<archivo>.webm` por ese campo (contrato intacto)
+// y entrega `<user_id>/<archivo>.webm` por ese campo (contrato intacto).
+// modulo 17: mediaKey lleva `<user_id>/<uuid>.<ext>` de la foto ya subida
+// directo al bucket por el cliente (mismo patron dual-storage, rama arte).
 export type IdeaPayload = {
   text: string;
   sourceUrl?: string;
   kind: IdeaKind;
+  mediaKey?: string;
 };
 
 // tokens de la spec modulo 2: los 8 y unicamente esos 8

@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import type { KeyboardEvent as Teclado, ClipboardEvent as Pegado } from 'react';
+import { useRef, useState } from 'react';
+import type { ChangeEvent as Cambio, KeyboardEvent as Teclado, ClipboardEvent as Pegado } from 'react';
 import { createClient } from '@/utils/supabase/browser';
 import { useRecorder, ERROR_MIC } from './capture/useRecorder';
+import { useFoto, ERROR_FOTO } from './capture/useFoto';
 import type { IdeaPayload } from '@/lib/types';
 
 const URL_RE = /^https?:\/\/\S+$/i;
@@ -14,6 +15,9 @@ export default function CaptureBar(props: { onSend: (idea: IdeaPayload) => Promi
   const [enviando, setEnviando] = useState(false);
   const [subiendoVoz, setSubiendoVoz] = useState(false);
   const mic = useRecorder();
+  const foto = useFoto(props.onSend);
+  const inputFoto = useRef<HTMLInputElement>(null);
+  const ocupado = enviando || subiendoVoz || foto.subiendo;
 
   async function enviar() {
     if (enviando || subiendoVoz) return;
@@ -75,6 +79,19 @@ export default function CaptureBar(props: { onSend: (idea: IdeaPayload) => Promi
     await mic.iniciar();
   }
 
+  /** modulo 17: el input file vive oculto; el boton camara lo dispara.
+   * Solo jpeg/png/webp y <= 8 MB (validacion en useFoto). */
+  function fotoTap() {
+    if (mic.grabando || ocupado) return;
+    inputFoto.current?.click();
+  }
+
+  async function alElegirFoto(e: Cambio<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    e.target.value = '';
+    await foto.subir(file);
+  }
+
   function tomarLink() {
     const t = texto.trim();
     if (!/^https?:\/\//i.test(t)) return;
@@ -109,6 +126,15 @@ export default function CaptureBar(props: { onSend: (idea: IdeaPayload) => Promi
         void enviar();
       }}
     >
+      <input
+        ref={inputFoto}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={(e) => void alElegirFoto(e)}
+        className="hidden"
+        aria-hidden="true"
+        tabIndex={-1}
+      />
       <div className="md:flex md:items-center md:gap-2">
         <div className="min-w-0 md:flex-1">
           {mic.grabando ? (
@@ -169,22 +195,32 @@ export default function CaptureBar(props: { onSend: (idea: IdeaPayload) => Promi
         <div className="mt-1 flex items-center gap-1 md:mt-0 md:shrink-0">
           {hayTexto || linkUrl ? null : (
             <>
-              <MicBoton grabando={mic.grabando} ocupado={enviando} onTap={micTap} />
+              <MicBoton grabando={mic.grabando} ocupado={ocupado} onTap={micTap} />
+              <FotoBoton
+                subiendo={foto.subiendo}
+                ocupado={mic.grabando || ocupado}
+                onTap={fotoTap}
+              />
               <LinkBoton texto={texto} onTap={tomarLink} />
             </>
           )}
           <SendBoton
             activo={puedeEnviar}
-            ocupado={enviando || subiendoVoz}
+            ocupado={ocupado}
             grabando={mic.grabando}
             onTap={() => void enviar()}
           />
         </div>
       </div>
 
-      {mic.error ? (
+      {mic.error && !foto.error ? (
         <p role="alert" className="mt-1 px-1 text-xs text-danger">
           {mic.error === ERROR_MIC ? ERROR_MIC : mic.error}
+        </p>
+      ) : null}
+      {foto.error ? (
+        <p role="alert" className="mt-1 px-1 text-xs text-danger">
+          {foto.error === ERROR_FOTO ? ERROR_FOTO : foto.error}
         </p>
       ) : null}
     </form>
@@ -208,6 +244,39 @@ function MicBoton(props: { grabando: boolean; ocupado: boolean; onTap: () => voi
         </span>
       )}
     </button>
+  );
+}
+
+/** modulo 17: mismo estilo de la barra (MicBoton); sube foto a Biblioteca */
+function FotoBoton(props: { subiendo: boolean; ocupado: boolean; onTap: () => void }) {
+  return (
+    <button
+      type="button"
+      aria-label={props.subiendo ? 'Subiendo la foto' : 'Subir una foto'}
+      disabled={props.ocupado}
+      onClick={props.onTap}
+      className="flex h-11 w-11 items-center justify-center"
+    >
+      {props.subiendo ? (
+        <span
+          aria-hidden="true"
+          className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-accent-soft border-t-accent"
+        />
+      ) : (
+        <span aria-hidden="true" className="flex h-9 w-9 items-center justify-center rounded-full bg-accent-soft">
+          <Camara />
+        </span>
+      )}
+    </button>
+  );
+}
+
+function Camara() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true" className="h-5 w-5" stroke="currentColor" strokeWidth="1.75">
+      <path d="M4 8.75a2 2 0 0 1 2-2h1.6l1.2-1.8a1 1 0 0 1 .83-.45h4.74a1 1 0 0 1 .83.45l1.2 1.8H18a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8.75Z" />
+      <circle cx="12" cy="12.25" r="3.25" />
+    </svg>
   );
 }
 
