@@ -12,6 +12,7 @@ export type FilaTokenAgente = {
   id: string;
   user_id: string;
   nombre: string;
+  permisos: string[] | null;
 };
 export type TokenAgenteResultado = FilaTokenAgente | null;
 
@@ -39,7 +40,7 @@ export async function buscarTokenAgente(
   if (!BASE64URL_RE.test(token.slice(TOKEN_PREFIJO_MT.length))) return null;
   const { data, error } = await admin
     .from('worker_tokens')
-    .select('id,user_id,nombre')
+    .select('id,user_id,nombre,permisos')
     .eq('token_hash', hashToken(token))
     .is('revocado_en', null)
     .maybeSingle();
