@@ -47,6 +47,7 @@ Siguiente: **SESION DE PLANIFICACION agente/MCPs/AI en curso (David la llamó)**
 | 16 | Recados + Fundamento | /api/tareas/[id]/recado, /api/proyectos/[id]/fundamento | ✓ QA prod PASS |
 | 17 | Fotos en Bandeja | upload directo bucket, arte branch, miniatura | ✓ QA prod PASS + cross-user 400 |
 | 18 | CLI login (device flow) + Camara | /api/mcp-login/start|poll, /conectar, 2 botones foto | ✓ QA prod e2e PASS |
+| 19 | Conectores + docs públicas | permisos por tool, wizard, /integraciones | ✓ QA prod PASS (gate -32002) |
 | 11 | Foco UI v2 (tarjetas + proyecto simple) | /foco tarjetas, /foco/[id] tabs | ✓ QA prod PASS end-to-end |
 | 12 | Direccion de flujos | /biblioteca -> proyecto, sin pull inverso | ✓ Audit IDOR pass |
 | 13 | Paginas/subpaginas estilo Notion | ideas.parent_id, breadcrumb, max 3 | ✓ QA prod PASS |
