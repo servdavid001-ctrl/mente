@@ -3,10 +3,7 @@
 import { useState } from 'react';
 import AppShell from '../AppShell';
 import EmptyState from '../EmptyState';
-import Copiloto from './Copiloto';
-import MetricasFoco from './MetricasFoco';
 import Guardian from './Guardian';
-import Hoy from './Hoy';
 import VistaTarjetas from './VistaTarjetas';
 import ModalCrearProyecto from './ModalCrearProyecto';
 import ModalPlegados from './ModalPlegados';
@@ -16,7 +13,8 @@ import { useFoco } from './useFoco';
 import { mensajeGuardian } from '@/lib/foco';
 
 /** Foco v2 (modulo 11): vista de tarjetas (carrusel/grid), botones flotantes
- * "+"/"P" con modales y guardian suave. La Extension vive solo en /ajustes. */
+ * "+"/"P" con modales y guardian suave. La Extension vive solo en /ajustes.
+ * Rediseño David paso 1: fuera metricas, seccion Hoy y Copiloto. */
 export default function Foco(props: { email?: string }) {
   const foco = useFoco();
   const desplegados = foco.proyectos.filter((p) => !p.plegado);
@@ -50,11 +48,6 @@ export default function Foco(props: { email?: string }) {
         {!foco.cargando && !foco.error ? (
           <>
             <Guardian mensaje={mensajeGuardian(foco.proyectos)} />
-            <MetricasFoco
-              proyectosDesplegados={desplegados.length}
-              objetivosActivos={foco.objetivos.filter((o) => o.estado === 'activo').length}
-              ideasSinProyecto={foco.sinProyecto}
-            />
             {desplegados.length === 0 ? (
               <EmptyState
                 icon="target"
@@ -67,8 +60,6 @@ export default function Foco(props: { email?: string }) {
               ocupadoId={foco.ocupadoId}
               onPlegar={(p) => void foco.alternarPlegado(p)}
             />
-            <Hoy />
-            <Copiloto proyectos={foco.proyectos} onCreado={() => void foco.cargar(true)} />
           </>
         ) : null}
       </div>

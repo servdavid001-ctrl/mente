@@ -1,46 +1,32 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import {
-  actualizarProyecto,
-  crearProyecto,
-  listarObjetivos,
-  listarProyectos
-} from '@/lib/foco';
-import type { Objetivo, Proyecto } from '@/lib/types';
+import { actualizarProyecto, crearProyecto, listarProyectos } from '@/lib/foco';
+import type { Proyecto } from '@/lib/types';
 
 const ERROR_CARGA = 'No pudimos cargar tu Foco. Reintentar';
 const ERROR_PLIEGUE = 'No se pudo cambiar el proyecto. Reintenta.';
 
 export type ResultadoFoco = ReturnType<typeof useFoco>;
 
-/** datos + acciones del panel de Foco (proyectos y objetivos del usuario) */
+/** datos + acciones del panel de Foco (proyectos del usuario) */
 export function useFoco() {
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
-  const [objetivos, setObjetivos] = useState<Objetivo[]>([]);
-  const [sinProyecto, setSinProyecto] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | undefined>();
   const [toast, setToast] = useState<string | null>(null);
   const [ocupadoId, setOcupadoId] = useState<string | null>(null);
 
-  const cargar = useCallback(async (silencioso = false) => {
-    if (!silencioso) {
-      setCargando(true);
-      setError(undefined);
-    }
+  const cargar = useCallback(async () => {
+    setCargando(true);
+    setError(undefined);
     try {
-      const [lista, objetivosUsuario] = await Promise.all([
-        listarProyectos(),
-        listarObjetivos()
-      ]);
+      const lista = await listarProyectos();
       setProyectos(lista.proyectos);
-      setSinProyecto(lista.sinProyecto);
-      setObjetivos(objetivosUsuario);
     } catch {
-      if (!silencioso) setError(ERROR_CARGA);
+      setError(ERROR_CARGA);
     } finally {
-      if (!silencioso) setCargando(false);
+      setCargando(false);
     }
   }, []);
 
@@ -86,8 +72,6 @@ export function useFoco() {
 
   return {
     proyectos,
-    objetivos,
-    sinProyecto,
     cargando,
     error,
     toast,
