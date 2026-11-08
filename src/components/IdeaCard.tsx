@@ -5,6 +5,7 @@ import type { ChipSugerenciaUI, Coleccion, Idea } from '@/lib/types';
 import { relativeTime } from '@/lib/time';
 import { createClient } from '@/utils/supabase/browser';
 import { Dot } from './biblioteca/ColeccionChip';
+import MiniaturaArte from './MiniaturaArte';
 import IdeaActionSheet from './IdeaActionSheet';
 import ChipSugerencia, { BotonNoMeSirve } from './ai/ChipSugerencia';
 import BotonPedirSugerencia from './ai/BotonPedirSugerencia';
@@ -56,10 +57,13 @@ export default function IdeaCard(props: {
         props.idea.archivada ? 'opacity-55' : ''
       }`}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <Linea idea={props.idea} />
         </div>
+        {props.idea.kind === 'arte' && props.idea.mediaUrl ? (
+          <MiniaturaArte ruta={props.idea.mediaUrl} />
+        ) : null}
         <button
           type="button"
           aria-label="Opciones de esta idea"

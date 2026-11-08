@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { createAdminClient } from '@/utils/supabase/admin';
 import { mapIdeaRow, SELECT_IDEA } from '@/lib/ideas';
 import { MAX_TEXTO } from '@/lib/biblioteca';
 import { esUuid } from '@/lib/foco';
@@ -84,7 +85,20 @@ export async function POST(request: Request) {
       .select(SELECT_IDEA)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      // modulo 17: si el insert de la foto falla, no queda basura en el bucket
+      // (remove con admin). Best-effort: si la limpieza falla el error insert manda.
+      const esArte = row.tipo === 'arte';
+      const rutaMedia = typeof row.media_url === 'string' ? row.media_url : null;
+      if (esArte && rutaMedia !== null) {
+        try {
+          await createAdminClient().storage.from('biblioteca-media').remove([rutaMedia]);
+        } catch {
+          // sin doble mensaje: el error del insert manda
+        }
+      }
+      throw error;
+    }
     return NextResponse.json({ idea: mapIdeaRow(data) }, { status: 201 });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Error';
@@ -94,10 +108,24 @@ export async function POST(request: Request) {
 
 function buildInsertRow(body: unknown, userId: string): Record<string, unknown> | null {
   if (typeof body !== 'object' || body === null) return null;
-  const { kind, text, sourceUrl } = (body ?? {}) as Record<string, unknown>;
+  const { kind, text, sourceUrl, mediaKey } = (body ?? {}) as Record<string, unknown>;
   const urlStr = typeof sourceUrl === 'string' && sourceUrl.length > 0 ? sourceUrl : null;
   const texto = typeof text === 'string' ? text.trim() : '';
 
+  if (kind === 'arte') {
+    // modulo 17: el blob ya vive en biblioteca-media (subida directa del
+    // cliente); aqui solo se valida el puntero y la idea nace tipo 'arte'
+    // en bandeja, SIN aceptar campos adicionales.
+    if (typeof mediaKey !== 'string') return null;
+    if (!esRutaMedia(mediaKey, userId)) return null;
+    return {
+      tipo: 'arte',
+      contenido: null,
+      fuente: null,
+      estado: 'bandeja',
+      media_url: mediaKey
+    };
+  }
   if (kind === 'link') {
     // acepta la URL de sourceUrl o, como fallback, extraida de text
     const candidata = esHttp(urlStr)
@@ -127,6 +155,21 @@ function buildInsertRow(body: unknown, userId: string): Record<string, unknown> 
 
 function esHttp(url: string | null): boolean {
   return url !== null && url.length <= MAX_URL && /^https?:\/\/\S+$/i.test(url);
+}
+
+const EXT_ARTE = ['jpg', 'png', 'webp'] as const;
+
+/** modulo 17: mediaKey = '<uid>/<nombre>.<ext>' con ext de foto permitida.
+ * 2 tramos, sin traversal y carpeta propia (igual que esRutaPropia del PUT media). */
+function esRutaMedia(ruta: string, uid: string): boolean {
+  if (ruta.length === 0 || ruta.length > MAX_URL) return false;
+  const tramos = ruta.split('/');
+  if (tramos.length !== 2 || tramos[0] !== uid) return false;
+  const nombre = tramos[1];
+  if (nombre.length === 0 || nombre.includes('..')) return false;
+  const punto = nombre.lastIndexOf('.');
+  if (punto <= 0) return false;
+  return (EXT_ARTE as readonly string[]).includes(nombre.slice(punto + 1).toLowerCase());
 }
 
 /** destino opcional del POST (libreta del proyecto, modulo 11):
